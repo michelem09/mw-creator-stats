@@ -1,4 +1,5 @@
-import { BASE, mwFetch } from "./session";
+import { BASE } from "./session";
+import type { Fetcher } from "../ports";
 import { extractNextData } from "./buildId";
 
 export interface RawModel {
@@ -12,7 +13,7 @@ interface ListShape {
 }
 
 export async function getModelList(
-  cookie: string,
+  fetcher: Fetcher,
   buildId: string,
   start: string,
   end: string,
@@ -22,7 +23,7 @@ export async function getModelList(
     `${BASE}/_next/data/${buildId}/en/my/data-overview/model.json` +
     `?startDate=${encodeURIComponent(start)}&endDate=${encodeURIComponent(end)}`;
   try {
-    const r = await mwFetch(url, cookie, {
+    const r = await fetcher(url, {
       headers: { "x-nextjs-data": "1" },
     });
     if (r.ok) {

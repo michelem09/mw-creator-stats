@@ -1,5 +1,6 @@
 import type { ModelMetadata } from "../types";
-import { BASE, mwFetch } from "./session";
+import { BASE } from "./session";
+import type { Fetcher } from "../ports";
 
 const ENDPOINT_TEMPLATES = [
   "{base}/api/v1/design-service/design/{id}",
@@ -155,7 +156,7 @@ export function extractMetadata(input: unknown): ModelMetadata {
 }
 
 export async function fetchModelMetadata(
-  cookie: string,
+  fetcher: Fetcher,
   designId: number,
   preferredTemplate: { value: string },
 ): Promise<ModelMetadata> {
@@ -170,7 +171,7 @@ export async function fetchModelMetadata(
   for (const tpl of order) {
     const url = tpl.replace("{base}", BASE).replace("{id}", String(designId));
     try {
-      const r = await mwFetch(url, cookie);
+      const r = await fetcher(url);
       if (!r.ok) {
         lastErr = `HTTP ${r.status}`;
         continue;

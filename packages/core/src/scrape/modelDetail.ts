@@ -1,4 +1,5 @@
-import { BASE, mwFetch, sleep } from "./session";
+import { BASE, sleep } from "./session";
+import type { Fetcher } from "../ports";
 
 export interface ModelSummary {
   impression?: number | string;
@@ -34,7 +35,7 @@ interface DetailShape {
 }
 
 export async function getModelDetail(
-  cookie: string,
+  fetcher: Fetcher,
   buildId: string,
   designId: number,
   start: string,
@@ -48,7 +49,7 @@ export async function getModelDetail(
   let lastErr: unknown = null;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const r = await mwFetch(url, cookie, {
+      const r = await fetcher(url, {
         headers: { "x-nextjs-data": "1" },
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);

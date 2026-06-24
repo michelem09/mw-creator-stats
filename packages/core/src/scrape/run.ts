@@ -5,6 +5,7 @@ import { getModelList, type RawModel } from "./modelList";
 import { getModelDetail, type ModelDetail } from "./modelDetail";
 import { fetchModelMetadata } from "./metadata";
 import { sleep } from "./session";
+import type { Fetcher } from "../ports";
 import { flushMetaCache, getCachedOrFetch, readMetaCache, type MetaCache } from "../metaCache";
 
 const toNum = (v: unknown): number => {
@@ -47,7 +48,7 @@ interface Processed {
 }
 
 async function processOne(
-  cookie: string,
+  fetcher: Fetcher,
   buildId: string,
   range: { start: string; end: string },
   raw: RawModel,
@@ -57,7 +58,7 @@ async function processOne(
 ): Promise<Processed> {
   let detail: ModelDetail | null = null;
   try {
-    detail = await getModelDetail(cookie, buildId, raw.designId, range.start, range.end);
+    detail = await getModelDetail(fetcher, buildId, raw.designId, range.start, range.end);
   } catch {
     detail = null;
   }
@@ -75,7 +76,7 @@ async function processOne(
 
   const hit = await getCachedOrFetch(
     raw.designId,
-    () => fetchModelMetadata(cookie, raw.designId, preferredTemplate),
+    () => fetchModelMetadata(fetcher, raw.designId, preferredTemplate),
     metaCache,
   );
   const metaError = "_error" in hit.meta && !!hit.meta._error;
@@ -142,16 +143,16 @@ function buildModelStat(p: Processed, today: Date): ModelStat | null {
 }
 
 export async function* runScrape(
-  cookie: string,
+  fetcher: Fetcher,
   opts: RunOptions,
 ): AsyncGenerator<SyncProgress, Snapshot, void> {
   const { start, end, delayMs = 80, concurrency = 10, skipMetadata = false } = opts;
 
   yield { stage: "buildId", message: "Resolving buildId" };
-  const { buildId, html } = await getPageContext(cookie);
+  const { buildId, html } = await getPageContext(fetcher);
 
   yield { stage: "list", message: "Fetching model list" };
-  const raw = await getModelList(cookie, buildId, start, end, html);
+  const raw = await getModelList(fetcher, buildId, start, end, html);
 
   const total = raw.length;
   const today = new Date();
@@ -180,7 +181,7 @@ export async function* runScrape(
 
     const results = await Promise.all(
       batch.map((r) =>
-        processOne(cookie, buildId, { start, end }, r, preferredTemplate, metaCache, skipMetadata),
+        processOne(fetcher, buildId, { start, end }, r, preferredTemplate, metaCache, skipMetadata),
       ),
     );
 

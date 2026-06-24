@@ -1,12 +1,13 @@
-import { AuthError, LIST_PAGE, mwFetch } from "./session";
+import { AuthError, LIST_PAGE } from "./session";
+import type { Fetcher } from "../ports";
 
 export interface PageContext {
   buildId: string;
   html: string;
 }
 
-export async function getPageContext(cookie: string): Promise<PageContext> {
-  const r = await mwFetch(LIST_PAGE, cookie, {}, "text/html");
+export async function getPageContext(fetcher: Fetcher): Promise<PageContext> {
+  const r = await fetcher(LIST_PAGE, { accept: "text/html" });
   if (r.status >= 300 && r.status < 400) {
     const rawLoc = r.headers["location"];
     const loc = Array.isArray(rawLoc) ? rawLoc[0] : rawLoc || "";

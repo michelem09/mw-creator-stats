@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { runScrape, type RunOptions } from "./scrape/run";
 import { writeSnapshot } from "./storage";
 import type { JobState } from "./types";
+import type { Fetcher } from "./ports";
 
 const HISTORY_TTL_MS = 10 * 60_000;
 
@@ -65,7 +66,7 @@ export function subscribe(l: Listener): () => void {
 
 export interface StartJobInput {
   range: { start: string; end: string };
-  cookie: string;
+  fetcher: Fetcher;
   options?: Partial<Pick<RunOptions, "delayMs" | "skipMetadata" | "concurrency">>;
 }
 
@@ -101,7 +102,7 @@ export function startJob(input: StartJobInput): JobState {
 
 async function runJob(state: JobState, input: StartJobInput): Promise<void> {
   try {
-    const gen = runScrape(input.cookie, {
+    const gen = runScrape(input.fetcher, {
       start: input.range.start,
       end: input.range.end,
       delayMs: input.options?.delayMs,

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { getPageContext } from "@mw/core/scrape/buildId";
-import { AuthError, resolveCookie } from "@mw/core/scrape/session";
+import { AuthError } from "@mw/core/scrape/session";
+import { gotScrapingFetcher, resolveCookie } from "@/lib/adapters/fetchGotScraping";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
     );
   }
   try {
-    const { buildId } = await getPageContext(cookie);
+    const { buildId } = await getPageContext(gotScrapingFetcher(cookie));
     return Response.json({ ok: true, buildId });
   } catch (e) {
     const isAuth = e instanceof AuthError;

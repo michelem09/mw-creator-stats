@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { resolveCookie } from "@mw/core/scrape/session";
 import { startJob } from "@mw/core/jobs";
+import { gotScrapingFetcher, resolveCookie } from "@/lib/adapters/fetchGotScraping";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   const job = startJob({
     range: { start, end },
-    cookie,
+    fetcher: gotScrapingFetcher(cookie),
     options: {
       delayMs: options?.delayMs,
       skipMetadata: options?.skipMetadata,
