@@ -1,132 +1,121 @@
 # MakerWorld Creator Stats
 
 Interactive dashboard for your [MakerWorld](https://makerworld.com) Creator Center data.
-Pull your stats for any date range, compare two periods, drill into single models — all
-running locally on your machine, fed by your authenticated browser session.
+Pull your stats for any date range, compare two periods, drill into single models.
 
 > Unofficial. Not affiliated with MakerWorld or Bambu Lab.
 
+It ships as **two targets that share one codebase**:
+
+- **Chrome extension** (recommended) — a full-page dashboard that uses your **live, logged-in
+  MakerWorld session**. Nothing to paste, no server, no hosting. All work happens in your
+  browser and data stays in your browser.
+- **Standalone web app** — clone-and-run like before. The browser still does the work and
+  stores data locally (IndexedDB); a thin same-origin relay only forwards requests to
+  MakerWorld to get around browser CORS. **Run it where your browser is** (the MakerWorld
+  Cloudflare clearance is tied to your IP).
+
 ## What it does
 
-- Scrapes your Creator Center analytics (impressions, views, downloads, prints, traffic source, points, etc.) for any date range.
-- Caches each pull as a JSON snapshot in `./data/`.
-- Renders an interactive dashboard with 7 sections: KPI strip, category breakdown,
-  conversion charts, traffic source mix, model X-ray, tags, recency-normalised
-  performance, and a sortable/filterable catalogue.
-- Drill into any model at `/models/{id}` for full breakdown.
-- Compare against any prior period inline: enable **+ Compare** in the toolbar
-  (Prev Period / Prev Year / Custom). All KPIs, category cards, traffic sources
-  and the catalogue table gain delta indicators, plus a dedicated "Biggest movers"
-  section highlights the models that moved most.
-- Optional **AI Insights** drawer: paste your own Anthropic API key once and ask
-  one-shot questions about your data ("which category should I invest in?",
-  "why did downloads drop?"). Toggle between *Fast* (curated ~5KB digest, cheap)
-  and *Precise* (full snapshot, more accurate). The drill-down page focuses the
-  bot on the single open model.
+- Scrapes your Creator Center analytics (impressions, views, downloads, prints, traffic
+  source, points, etc.) for any date range.
+- Renders an interactive dashboard: KPI strip, category breakdown, conversion charts,
+  traffic-source mix, model X-ray, tags, recency-normalised performance, sortable catalogue.
+- Drill into any model for a full breakdown.
+- Compare against any prior period inline (Prev Period / Prev Year / Custom) with delta
+  indicators and a "Biggest movers" section.
+- Optional **AI Insights** drawer: paste your own Anthropic API key once and ask one-shot
+  questions about your data. The call goes **directly from your browser** to
+  `api.anthropic.com`; the key only ever lives in your browser's `localStorage`.
 
-## Setup
+## Repository layout (npm workspaces)
+
+```
+packages/
+  core/        shared logic: scrape parsing, aggregation, compare, AI prompts,
+               ports (Fetcher/Store/AiClient), IndexedDB + Anthropic adapters
+  ui/          shared React components (dashboard, sections, drawers, nav abstraction)
+  web/         Next.js standalone app + thin /api/mw-proxy relay
+  extension/   Chrome MV3 extension (Vite) — full-page tab
+```
+
+The two targets differ only at the edges: **how the browser reaches MakerWorld** (extension
+fetches directly with host permissions; web goes through the relay) and the cookie UX.
+Storage (IndexedDB) and the AI call are identical in both.
+
+## Run the standalone web app
 
 Requires **Node.js 20+**.
 
 ```bash
-git clone <your-fork-url> makerworld-creator-stats
-cd makerworld-creator-stats
+git clone <your-fork-url> mw-creator-stats
+cd mw-creator-stats
 npm install
-cp .env.example .env   # optional: set MW_COOKIE as a fallback
-npm run dev
+npm run dev          # web target on http://localhost:3617
 ```
 
-Open <http://localhost:3617>. The first time, a modal asks you to paste your
-MakerWorld cookie.
+The first time, a modal asks for your MakerWorld cookie (see below). Snapshots are saved in
+your browser (IndexedDB), so they persist per-browser across reloads.
 
-> The default port is **3617** (not 3000) to avoid clashing with whatever else
-> you might already be running locally. Override with `PORT=4000 npm run dev`.
+### How to get your MakerWorld cookie (standalone only)
 
-### How to get your MakerWorld cookie
+1. Log into <https://makerworld.com> and open
+   <https://makerworld.com/en/my/data-overview/model>.
+2. DevTools (`Cmd/Ctrl + Opt + I`) → **Application → Cookies → makerworld.com**, copy the
+   `token` value — or **Network** tab → any request → copy the full `Cookie:` header.
+3. Paste it into the modal and **Save**. It's kept in `localStorage` and sent only to this
+   app's own `/api/mw-proxy`, which forwards it to MakerWorld. You can also set `MW_COOKIE`
+   in `.env` as a fallback.
 
-1. Log into <https://makerworld.com> in your browser.
-2. Open <https://makerworld.com/en/my/data-overview/model>. You should see your
-   own data.
-3. Open DevTools (`Cmd/Ctrl + Opt + I`) → **Network** tab.
-4. Reload the page, click any `makerworld.com` request.
-5. Scroll to **Request Headers**, find the line that starts with `Cookie:`, and
-   copy the full value (it's a long `name1=value1; name2=value2; …` string).
-6. Paste it into the modal and press **Save**. It's stored in your browser's
-   `localStorage` — never sent anywhere except this app's local API.
+The cookie includes Cloudflare's `cf_clearance`, which is **IP-bound** — so the standalone
+app must run on the same machine/network as the browser you copied it from. (The extension
+sidesteps this entirely by using your live session.)
 
-The cookie expires when you log out of MakerWorld; re-paste it then. If you
-prefer, you can set it once in `.env` as `MW_COOKIE=…`; the UI cookie wins when
-both are present.
+## Build & load the Chrome extension
 
-### AI Insights (optional)
+```bash
+npm install
+npm run build:ext           # outputs packages/extension/dist
+```
 
-To enable the **✨ Insights** drawer:
+Then in Chrome: **chrome://extensions → enable Developer mode → Load unpacked →** select
+`packages/extension/dist`. Click the toolbar icon to open the full-page dashboard. Because
+it runs inside your logged-in browser, there's **no cookie to paste** — just press Sync.
 
-1. Get a key from <https://console.anthropic.com/settings/keys> (start with $5 in credit).
-2. Click the "✨ Insights" button in the app header, then "set Anthropic key", paste, "Test key", "Save".
-3. The key is stored only in your browser&apos;s `localStorage`. The local backend
-   proxies your question to `api.anthropic.com` and nothing more — no logging,
-   no caching, no persistence.
-4. Pick **Fast** (default, sends a ~5KB curated digest — totals, top models,
-   category aggregates, movers if compare is on) or **Precise** (sends the full
-   snapshot, ~60KB). Fast covers most questions and is much cheaper.
+### AI Insights (optional, both targets)
 
-Each question is independent — the bot has **no memory** between turns. This
-keeps your token cost predictable and matches how most people actually use it:
-one focused question at a time.
-
-You can also set `ANTHROPIC_API_KEY` in `.env` as a server-side fallback —
-useful for `docker run` setups where you don&apos;t want users pasting keys
-through the UI.
+1. Get a key from <https://console.anthropic.com/settings/keys> (start with a little credit).
+2. Click **✨ Insights → set Anthropic key**, paste, **Test key**, **Save**.
+3. The key is stored only in your browser's `localStorage` and used to call
+   `api.anthropic.com` directly. Pick **Fast** (curated digest, cheap) or **Precise** (full
+   snapshot). Each question is independent — no memory between turns.
 
 ## How it works
 
-There is no MakerWorld public API for analytics, so this app talks to the same
-endpoints the Creator Center UI uses:
+There is no public MakerWorld analytics API, so the app talks to the same endpoints the
+Creator Center UI uses:
 
-| Step | URL |
-|---|---|
-| Build ID | `GET /en/my/data-overview/model` → regex on `__NEXT_DATA__` |
-| Model list | `GET /_next/data/{buildId}/.../model.json?startDate=&endDate=` |
+| Step      | URL |
+|-----------|-----|
+| Build ID  | `GET /en/my/data-overview/model` → regex on `__NEXT_DATA__` |
+| Model list| `GET /_next/data/{buildId}/.../model.json?startDate=&endDate=` |
 | Per-model | `GET /_next/data/{buildId}/.../model/{id}.json` |
-| Metadata | `GET /api/v1/design-service/design/{id}` (with two fallbacks) |
+| Metadata  | `GET /api/v1/design-service/design/{id}` (with fallbacks) |
 
-MakerWorld redeploys change the build ID and occasionally the JSON shape; if a
-sync stops working after an MW update, the scraping modules in `lib/scrape/`
-are the place to look.
+The `_next/data` endpoints sit behind Cloudflare's JS challenge; both targets pass it using
+the `cf_clearance` cookie from your real browser session (the extension live, the standalone
+via the cookie you paste). MakerWorld redeploys change the build ID and occasionally the JSON
+shape; if a sync stops working, the parsing modules in `packages/core/src/scrape/` are the
+place to look.
 
-## Project layout
-
-```
-app/
-  page.tsx              dashboard
-  models/[id]/page.tsx  drill-down
-  compare/page.tsx      period comparison
-  api/
-    sync/route.ts       POST → SSE progress + writes snapshot
-    snapshot/route.ts   GET  → cached snapshot or 404
-lib/
-  scrape/               TS port of the original Python scraper
-  storage.ts            JSON snapshot read/write
-  aggregate.ts          totals, byCategory, traffic mix
-  types.ts              shared types
-components/
-  sections/             one file per dashboard section
-data/                   gitignored, your snapshots live here
-```
-
-## Docker (optional)
+## Docker (standalone)
 
 ```bash
 docker build -t mw-stats .
-docker run --rm -p 3617:3617 -v "$PWD/data:/app/data" --env-file .env mw-stats
+docker run --rm -p 3617:3617 --env-file .env mw-stats
 ```
 
-## Roadmap ideas
-
-- Multilingual UI (currently English only).
-- Snapshot history / trends across runs.
-- Per-day granularity for drill-down (depends on whether MakerWorld exposes it).
+No volume is needed — snapshots live in the browser, not on the server.
 
 ## License
 
