@@ -90,6 +90,25 @@ it runs inside your logged-in browser, there's **no cookie to paste** — just p
    `api.anthropic.com` directly. Pick **Fast** (curated digest, cheap) or **Precise** (full
    snapshot). Each question is independent — no memory between turns.
 
+## Publishing the extension
+
+Everything needed for a Chrome Web Store submission lives in the repo:
+
+- **Listing copy & review-form answers** (name, summary, description, permission
+  justifications, data disclosures): [`packages/extension/STORE_LISTING.md`](packages/extension/STORE_LISTING.md).
+- **Privacy policy**: [`PRIVACY.md`](PRIVACY.md) — host it (e.g. GitHub) and use its URL in the listing.
+- **Icons**: generated into `packages/extension/public/icons/` (`npm run icons -w @mw/extension`).
+- **Promo graphics**: `packages/extension/store-assets/` — 440×280 tile and 1400×560 marquee
+  (`npm run assets -w @mw/extension`).
+- **Screenshots**: capture real ones with the demo seeder — see
+  [`store-assets/SCREENSHOTS.md`](packages/extension/store-assets/SCREENSHOTS.md). Paste
+  `scripts/demo-seed.js` into the DevTools console to populate the dashboard with realistic
+  data, then screenshot at 1280×800.
+- **Package for upload**:
+  ```bash
+  npm run pack -w @mw/extension   # -> packages/extension/mw-creator-stats-extension.zip
+  ```
+
 ## How it works
 
 There is no public MakerWorld analytics API, so the app talks to the same endpoints the
