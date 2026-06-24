@@ -2,8 +2,22 @@
   "manifest_version": 3,
   "name": "MakerWorld Creator Stats",
   "version": "0.1.0",
-  "description": "Full-page analytics dashboard for your MakerWorld Creator Center data. Unofficial.",
-  "action": { "default_title": "Open MakerWorld Creator Stats" },
+  "description": "Full-page analytics dashboard for your MakerWorld Creator Center data: date ranges, period comparison, per-model drill-down, and optional AI insights. Unofficial.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Open MakerWorld Creator Stats",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
   "background": { "service_worker": "background.js", "type": "module" },
   "permissions": ["storage"],
   "host_permissions": [

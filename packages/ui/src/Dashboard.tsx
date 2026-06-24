@@ -233,9 +233,23 @@ export function Dashboard({ sessionAuth = false }: { sessionAuth?: boolean }) {
         })}
       />
 
-      <footer className="mt-12 border-t border-line pt-4 text-center text-[10px] text-ink3">
-        Conversion rates from impression/view/download. Traffic source weighted by
-        views. Snapshots stored locally in your browser (IndexedDB).
+      <footer className="mt-12 space-y-2 border-t border-line pt-4 text-center">
+        <p className="text-xs text-ink2">
+          Made with <span className="text-red">♥</span> by{" "}
+          <a
+            href="https://makerworld.com/en/@michelem"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-teal hover:underline"
+          >
+            @michelem
+          </a>{" "}
+          — check out my models on MakerWorld ↗
+        </p>
+        <p className="text-[10px] text-ink3">
+          Conversion rates from impression/view/download. Traffic source weighted by
+          views. Snapshots stored locally in your browser (IndexedDB).
+        </p>
       </footer>
     </main>
   );
