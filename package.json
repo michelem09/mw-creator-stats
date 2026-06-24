@@ -1,32 +1,23 @@
 {
-  "name": "makerworld-creator-stats",
+  "name": "mw-creator-stats",
   "version": "0.1.0",
   "private": true,
   "description": "Interactive dashboard for your MakerWorld Creator Center stats.",
   "license": "MIT",
+  "workspaces": [
+    "packages/core",
+    "packages/ui",
+    "packages/web",
+    "packages/extension"
+  ],
   "scripts": {
-    "dev": "next dev -p ${PORT:-3617}",
-    "build": "next build",
-    "start": "next start -p ${PORT:-3617}",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "got-scraping": "^4.2.1",
-    "next": "^15.0.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "recharts": "^2.13.3"
+    "dev": "npm run dev -w @mw/web",
+    "build": "npm run build -w @mw/web",
+    "build:ext": "npm run build -w @mw/extension",
+    "lint": "npm run lint -w @mw/web",
+    "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "devDependencies": {
-    "@types/node": "^22.9.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^9.15.0",
-    "eslint-config-next": "^15.0.3",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.15",
     "typescript": "^5.6.3"
   }
 }
