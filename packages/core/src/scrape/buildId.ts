@@ -1,4 +1,4 @@
-import { AuthError, LIST_PAGE } from "./session";
+import { AuthError, LIST_PAGE, sleep } from "./session";
 import type { Fetcher } from "../ports";
 
 export interface PageContext {
@@ -6,7 +6,29 @@ export interface PageContext {
   html: string;
 }
 
-export async function getPageContext(fetcher: Fetcher): Promise<PageContext> {
+/** Resolve the buildId from the data-overview page. This is the first request of a
+ *  sync and a single transient Cloudflare 403 here would abort the whole run, so we
+ *  retry a few times with backoff before giving up. A genuinely expired cookie still
+ *  surfaces as AuthError after the attempts are exhausted. */
+export async function getPageContext(
+  fetcher: Fetcher,
+  attempts = 3,
+): Promise<PageContext> {
+  let lastErr: unknown = null;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      return await getPageContextOnce(fetcher);
+    } catch (e) {
+      lastErr = e;
+      if (attempt < attempts - 1) await sleep(600 * (attempt + 1));
+    }
+  }
+  throw lastErr instanceof Error
+    ? lastErr
+    : new Error("Could not load the data-overview page");
+}
+
+async function getPageContextOnce(fetcher: Fetcher): Promise<PageContext> {
   const r = await fetcher(LIST_PAGE, { accept: "text/html" });
   if (r.status >= 300 && r.status < 400) {
     const rawLoc = r.headers["location"];
