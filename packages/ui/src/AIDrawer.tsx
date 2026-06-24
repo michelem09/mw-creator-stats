@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { AISetup } from "./AISetup";
 import { useAI } from "./AIProvider";
 import { MiniMarkdown } from "./MiniMarkdown";
+import { askInsights } from "@mw/core/ai/ask";
 import type { AIChatEntry, AIMode, Snapshot } from "@mw/core/types";
 
 interface Props {
@@ -61,63 +62,36 @@ export function AIDrawer({ snapshot, prevSnapshot, focusModelId, suggestedPrompt
     abortRef.current = ac;
 
     try {
-      const res = await fetch("/api/ai/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const stream = await askInsights(
+        {
           apiKey: key,
           mode,
           question: q,
           snapshot,
           prevSnapshot: prevSnapshot ?? null,
           focusModelId: focusModelId ?? null,
-        }),
-        signal: ac.signal,
-      });
+        },
+        ac.signal,
+      );
 
-      if (!res.ok || !res.body) {
-        const txt = await res.text();
-        throw new Error(txt || `HTTP ${res.status}`);
-      }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = "";
+      const reader = stream.getReader();
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        buf += decoder.decode(value, { stream: true });
-        const parts = buf.split("\n\n");
-        buf = parts.pop() ?? "";
-        for (const part of parts) {
-          const line = part.split("\n").find((l) => l.startsWith("data: "));
-          if (!line) continue;
-          let evt: { type: string; content?: string; message?: string };
-          try {
-            evt = JSON.parse(line.slice(6));
-          } catch {
-            continue;
-          }
-          if (evt.type === "text" && evt.content) {
-            setEntries((arr) =>
-              arr.map((e) => (e.id === id ? { ...e, answer: e.answer + evt.content } : e)),
-            );
-          } else if (evt.type === "error") {
-            setEntries((arr) =>
-              arr.map((e) =>
-                e.id === id ? { ...e, error: evt.message || "Error", finishedAt: Date.now() } : e,
-              ),
-            );
-          } else if (evt.type === "done") {
-            setEntries((arr) =>
-              arr.map((e) => (e.id === id ? { ...e, finishedAt: Date.now() } : e)),
-            );
-          }
+        if (value) {
+          setEntries((arr) =>
+            arr.map((e) => (e.id === id ? { ...e, answer: e.answer + value } : e)),
+          );
         }
       }
+      setEntries((arr) =>
+        arr.map((e) => (e.id === id ? { ...e, finishedAt: Date.now() } : e)),
+      );
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      if (msg !== "AbortError") {
+      if (e instanceof Error && e.name === "AbortError") {
+        // user closed the drawer mid-stream — leave the partial answer as-is
+      } else {
         setEntries((arr) =>
           arr.map((it) => (it.id === id ? { ...it, error: msg, finishedAt: Date.now() } : it)),
         );

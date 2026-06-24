@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { testAnthropicKey } from "@mw/core/ai/ask";
 
 const KEY_STORAGE = "mw_anthropic_key";
 
@@ -46,12 +47,7 @@ export function AISetup({
     if (!v) return;
     setTest({ kind: "running" });
     try {
-      const r = await fetch("/api/ai/test-key", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apiKey: v }),
-      });
-      const j = (await r.json()) as { ok: boolean; error?: string };
+      const j = await testAnthropicKey(v);
       if (j.ok) setTest({ kind: "ok" });
       else setTest({ kind: "fail", message: j.error || "Unknown error" });
     } catch (e) {
@@ -115,9 +111,9 @@ export function AISetup({
         <p className="mt-3 text-[11px] text-ink3">
           Privacy: each question you ask sends your current snapshot (or a
           curated digest of it, depending on the mode) to{" "}
-          <span className="font-mono">api.anthropic.com</span>. Your key never
-          leaves this machine&apos;s storage and never touches our backend
-          beyond proxying the API call.
+          <span className="font-mono">api.anthropic.com</span> directly from your
+          browser. Your key never leaves this browser&apos;s storage and never
+          touches any backend.
         </p>
 
         <div className="mt-5 flex items-center justify-end gap-3">

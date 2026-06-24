@@ -14,6 +14,7 @@ export interface AnthropicCallInput {
   system: string;
   user: string;
   maxTokens?: number;
+  signal?: AbortSignal;
 }
 
 /** Calls Anthropic /v1/messages with stream:true and returns a ReadableStream<string>
@@ -21,13 +22,15 @@ export interface AnthropicCallInput {
  *  by stream close; errors throw before the stream starts or surface as a thrown error
  *  on the underlying upstream socket. */
 export async function streamAnthropic(opts: AnthropicCallInput): Promise<ReadableStream<string>> {
-  const { apiKey, model = DEFAULT_MODEL, system, user, maxTokens = 1024 } = opts;
+  const { apiKey, model = DEFAULT_MODEL, system, user, maxTokens = 1024, signal } = opts;
 
   const upstream = await fetch(ANTHROPIC_URL, {
     method: "POST",
     headers: {
       "x-api-key": apiKey,
       "anthropic-version": "2023-06-01",
+      // Allow the call to run directly from a browser (extension page / web client).
+      "anthropic-dangerous-direct-browser-access": "true",
       "content-type": "application/json",
       accept: "text/event-stream",
     },
@@ -38,6 +41,7 @@ export async function streamAnthropic(opts: AnthropicCallInput): Promise<Readabl
       system,
       messages: [{ role: "user", content: user }],
     }),
+    signal,
   });
 
   if (!upstream.ok || !upstream.body) {
