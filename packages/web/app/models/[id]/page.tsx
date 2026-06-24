@@ -13,6 +13,7 @@ import { CHART_TOOLTIP, ageColor } from "@mw/core/chartTheme";
 import { AIDrawer } from "@mw/ui/AIDrawer";
 import { useAI } from "@mw/ui/AIProvider";
 import { suggestedPrompts } from "@mw/core/ai/prompts";
+import { idbStore } from "@mw/core/adapters/store-idb";
 
 const SRC_COLORS = ["#3fb9a6", "#e8902a", "#9b7dd6", "#5b9bd6", "#807461"];
 const SRC_LABELS = ["Recommend", "Search", "Browse", "Direct", "Other"];
@@ -64,20 +65,16 @@ export default function ModelPage() {
     setLoading(true);
     setNotFound(false);
     try {
-      const res = await fetch(`/api/snapshot?start=${r.start}&end=${r.end}`);
-      if (res.ok) setSnap((await res.json()) as Snapshot);
-      else {
-        setSnap(null);
-        setNotFound(true);
-      }
+      const s = await idbStore.readSnapshot(r.start, r.end);
+      setSnap(s);
+      setNotFound(s == null);
     } finally {
       setLoading(false);
     }
   }, []);
 
   const loadPrev = useCallback(async (r: DateRange) => {
-    const res = await fetch(`/api/snapshot?start=${r.start}&end=${r.end}`);
-    setPrevSnap(res.ok ? ((await res.json()) as Snapshot) : null);
+    setPrevSnap(await idbStore.readSnapshot(r.start, r.end));
   }, []);
 
   useEffect(() => {

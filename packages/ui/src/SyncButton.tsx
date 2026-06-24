@@ -25,7 +25,7 @@ export function SyncButton({
   /** When provided, after triggering the main sync the button also kicks off a second sync for this range. */
   compareRange?: DateRange | null;
 }) {
-  const { jobForRange } = useSync();
+  const { jobForRange, startSync } = useSync();
   const running =
     !!jobForRange(start, end) ||
     (!!compareRange && !!jobForRange(compareRange.start, compareRange.end));
@@ -33,21 +33,6 @@ export function SyncButton({
 
   const showDialog = (d: Omit<DialogState, "open">) =>
     setDialog({ ...d, open: true });
-
-  async function postSync(r: { start: string; end: string }): Promise<void> {
-    const res = await fetch("/api/sync", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...r, cookie }),
-    });
-    const j = (await res.json().catch(() => ({}))) as { jobId?: string; error?: string };
-    if (!res.ok) {
-      const isAuth = res.status === 401;
-      throw new Error(
-        `${isAuth ? "[auth] " : ""}${j.error || `HTTP ${res.status}`} (${r.start}→${r.end})`,
-      );
-    }
-  }
 
   async function run() {
     if (running) return;
@@ -60,8 +45,8 @@ export function SyncButton({
       return;
     }
     try {
-      await postSync({ start, end });
-      if (compareRange) await postSync(compareRange);
+      await startSync({ start, end }, cookie);
+      if (compareRange) await startSync(compareRange, cookie);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       const isAuth = msg.startsWith("[auth]");

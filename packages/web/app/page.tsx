@@ -21,6 +21,7 @@ import { suggestedPrompts } from "@mw/core/ai/prompts";
 import { byCategory, totals, trafficMixCatalog } from "@mw/core/aggregate";
 import { pickPrevRange } from "@mw/core/compare";
 import { daysAgo, today } from "@mw/core/format";
+import { idbStore } from "@mw/core/adapters/store-idb";
 import type { CompareConfig, CompareMode, Snapshot } from "@mw/core/types";
 
 const COMPARE_MODE_KEY = "mw_compare_mode";
@@ -73,9 +74,9 @@ export default function HomePage() {
 
   const loadSnapshot = useCallback(
     async (r: DateRange, target: "current" | "prev"): Promise<void> => {
-      const res = await fetch(`/api/snapshot?start=${r.start}&end=${r.end}`);
+      const snap = await idbStore.readSnapshot(r.start, r.end);
       const setter = target === "current" ? setSnap : setPrevSnap;
-      setter(res.ok ? ((await res.json()) as Snapshot) : null);
+      setter(snap);
     },
     [],
   );
@@ -237,7 +238,7 @@ export default function HomePage() {
 
       <footer className="mt-12 border-t border-line pt-4 text-center text-[10px] text-ink3">
         Conversion rates from impression/view/download. Traffic source weighted
-        by views. Snapshots stored locally in <code>./data</code>.
+        by views. Snapshots stored locally in your browser (IndexedDB).
       </footer>
     </main>
   );

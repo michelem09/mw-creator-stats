@@ -1,23 +1,16 @@
-FROM node:20-alpine AS deps
-WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci
-
+# Standalone (self-hosted) build of the web target. The browser does the scrape and
+# stores snapshots in IndexedDB; this server only serves the app and runs the thin
+# /api/mw-proxy relay (cf_clearance is IP-bound, so run this where your browser is).
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN npm ci
 RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/next.config.mjs ./next.config.mjs
-RUN mkdir -p /app/data
-EXPOSE 3617
 ENV PORT=3617
-CMD ["sh", "-c", "npx next start -p ${PORT}"]
+COPY --from=builder /app ./
+EXPOSE 3617
+CMD ["npm", "run", "start", "-w", "@mw/web"]

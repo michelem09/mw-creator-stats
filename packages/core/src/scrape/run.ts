@@ -5,8 +5,8 @@ import { getModelList, type RawModel } from "./modelList";
 import { getModelDetail, type ModelDetail } from "./modelDetail";
 import { fetchModelMetadata } from "./metadata";
 import { sleep } from "./session";
-import type { Fetcher } from "../ports";
-import { flushMetaCache, getCachedOrFetch, readMetaCache, type MetaCache } from "../metaCache";
+import type { Fetcher, Store } from "../ports";
+import { getCachedOrFetch, type MetaCache } from "../metaCache";
 
 const toNum = (v: unknown): number => {
   if (typeof v === "number") return Number.isFinite(v) ? v : 0;
@@ -144,6 +144,7 @@ function buildModelStat(p: Processed, today: Date): ModelStat | null {
 
 export async function* runScrape(
   fetcher: Fetcher,
+  store: Store,
   opts: RunOptions,
 ): AsyncGenerator<SyncProgress, Snapshot, void> {
   const { start, end, delayMs = 80, concurrency = 10, skipMetadata = false } = opts;
@@ -162,7 +163,7 @@ export async function* runScrape(
   let metaErrors = 0;
   let cachedMetaCount = 0;
   let fetchedMetaCount = 0;
-  const metaCache = skipMetadata ? {} : await readMetaCache();
+  const metaCache: MetaCache = skipMetadata ? {} : await store.readMetaCache();
 
   let processedCount = 0;
   for (let i = 0; i < raw.length; i += concurrency) {
@@ -232,7 +233,7 @@ export async function* runScrape(
 
   if (!skipMetadata) {
     try {
-      await flushMetaCache(metaCache);
+      await store.flushMetaCache(metaCache);
     } catch {
       /* non-fatal */
     }

@@ -1,29 +1,8 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
 import type { CachedMeta, ModelMetadata } from "./types";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const CACHE_PATH = path.join(DATA_DIR, "metadata-cache.json");
 const DEFAULT_TTL_DAYS = 30;
 
 export type MetaCache = Record<string, CachedMeta>;
-
-export async function readMetaCache(): Promise<MetaCache> {
-  try {
-    const raw = await fs.readFile(CACHE_PATH, "utf-8");
-    return JSON.parse(raw) as MetaCache;
-  } catch (e) {
-    if ((e as NodeJS.ErrnoException).code === "ENOENT") return {};
-    return {};
-  }
-}
-
-export async function flushMetaCache(cache: MetaCache): Promise<void> {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  const tmp = CACHE_PATH + ".tmp";
-  await fs.writeFile(tmp, JSON.stringify(cache, null, 2), "utf-8");
-  await fs.rename(tmp, CACHE_PATH);
-}
 
 function isFresh(entry: CachedMeta, ttlDays: number, now: number): boolean {
   if (!entry.fetchedAt) return false;
