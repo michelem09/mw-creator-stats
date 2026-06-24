@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { NavLink } from "../nav";
 import { useMemo, useState } from "react";
 import { fmt, pct } from "@mw/core/format";
 import type { ModelStat } from "@mw/core/types";
@@ -179,9 +179,9 @@ export function Catalog({
             {filteredRows.map((r) => (
               <tr key={r.m.id} className="border-t border-line/60 hover:bg-panel2/60">
                 <td className="px-3 py-2">
-                  <Link href={`/models/${r.m.id}`} className="text-ink hover:text-teal">
+                  <NavLink href={`/models/${r.m.id}`} className="text-ink hover:text-teal">
                     {r.m.title}
-                  </Link>
+                  </NavLink>
                   <div className="text-[10px] text-ink3">{r.m.category || "Uncategorized"}</div>
                 </td>
                 <td className="px-3 py-2 text-right font-mono">{fmt(r.m.view)}</td>

@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import { NavLink } from "../nav";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { fmt, fmt0 } from "@mw/core/format";
 import type { ModelStat } from "@mw/core/types";
@@ -124,12 +124,12 @@ export function ModelXray({
           )}
 
           <div className="mt-4">
-            <Link
+            <NavLink
               href={`/models/${d.id}`}
               className="text-xs text-teal hover:underline"
             >
               Open full drill-down →
-            </Link>
+            </NavLink>
           </div>
         </div>
 

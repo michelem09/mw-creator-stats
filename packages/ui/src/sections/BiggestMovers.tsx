@@ -1,7 +1,6 @@
 "use client";
-import Link from "next/link";
 import { useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { NavLink, useNav } from "../nav";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { CHART_TOOLTIP } from "@mw/core/chartTheme";
 import { biggestMoversByViews, type MoverEntry } from "@mw/core/compare";
@@ -15,7 +14,7 @@ export function BiggestMovers({
   models: ModelStat[];
   prevModels: ModelStat[];
 }) {
-  const router = useRouter();
+  const { navigate } = useNav();
   const movers = useMemo(() => biggestMoversByViews(models, prevModels, 12), [models, prevModels]);
 
   if (movers.length === 0) return null;
@@ -38,7 +37,7 @@ export function BiggestMovers({
               onClick={(state) => {
                 const idx = state?.activeTooltipIndex;
                 if (typeof idx === "number" && movers[idx]) {
-                  router.push(`/models/${movers[idx].id}`);
+                  navigate(`/models/${movers[idx].id}`);
                 }
               }}
             >
@@ -83,9 +82,9 @@ export function BiggestMovers({
               {movers.map((m) => (
                 <tr key={m.id} className="border-t border-line/60">
                   <td className="px-2 py-1">
-                    <Link href={`/models/${m.id}`} className="text-ink hover:text-teal">
+                    <NavLink href={`/models/${m.id}`} className="text-ink hover:text-teal">
                       {m.title}
-                    </Link>
+                    </NavLink>
                   </td>
                   <td className="px-2 py-1 text-right font-mono">{fmt(m.prev)}</td>
                   <td className="px-2 py-1 text-right font-mono">{fmt(m.current)}</td>
