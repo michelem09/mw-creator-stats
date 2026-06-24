@@ -45,8 +45,13 @@ export function SyncButton({
       return;
     }
     try {
-      await startSync({ start, end }, cookie);
-      if (compareRange) await startSync(compareRange, cookie);
+      // Fire both syncs concurrently (don't await the first before starting the
+      // second) so the current and compare ranges run in parallel.
+      const tasks = [startSync({ start, end }, cookie)];
+      if (compareRange) tasks.push(startSync(compareRange, cookie));
+      const results = await Promise.allSettled(tasks);
+      const failed = results.find((r) => r.status === "rejected");
+      if (failed) throw (failed as PromiseRejectedResult).reason;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       const isAuth = msg.startsWith("[auth]");
