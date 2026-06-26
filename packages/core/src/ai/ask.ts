@@ -1,10 +1,12 @@
 import { streamAnthropic } from "./anthropic";
+import { streamGemini, testGeminiKey } from "./gemini";
 import {
   buildFastDigest,
   buildFullPayload,
   buildModelFocusDigest,
 } from "./digest";
-import type { AIAskRequest } from "../types";
+import { providerMeta } from "./providers";
+import type { AIAskRequest, AIProviderId } from "../types";
 
 const TEST_MODEL = "claude-haiku-4-5-20251001";
 
@@ -39,8 +41,9 @@ export async function askInsights(
   req: AIAskRequest,
   signal?: AbortSignal,
 ): Promise<ReadableStream<string>> {
+  const provider: AIProviderId = req.provider === "gemini" ? "gemini" : "anthropic";
   const apiKey = (req.apiKey || "").trim();
-  if (!apiKey) throw new Error("No Anthropic API key provided");
+  if (!apiKey) throw new Error(`No ${providerMeta(provider).shortLabel} API key provided`);
   if (!req.question?.trim()) throw new Error("Empty question");
   if (!req.snapshot) throw new Error("Missing snapshot");
 
@@ -69,7 +72,18 @@ export async function askInsights(
   const system = systemPrompt(rangeLabel, prevRangeLabel, focusId != null, modelTitle);
   const user = `${req.question.trim()}\n\n---\nDATA:\n${JSON.stringify(payload)}`;
 
+  if (provider === "gemini") {
+    return streamGemini({ apiKey, system, user, maxTokens: 1500, signal });
+  }
   return streamAnthropic({ apiKey, system, user, maxTokens: 1500, signal });
+}
+
+/** Validate a key for the given provider. */
+export function testKey(
+  provider: AIProviderId,
+  apiKey: string,
+): Promise<{ ok: boolean; error?: string }> {
+  return provider === "gemini" ? testGeminiKey(apiKey) : testAnthropicKey(apiKey);
 }
 
 /** Validate an Anthropic key with a tiny direct call. */

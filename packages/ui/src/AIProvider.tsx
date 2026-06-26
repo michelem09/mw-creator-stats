@@ -1,14 +1,19 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { loadAnthropicKey, saveAnthropicKey } from "./AISetup";
-import type { AIMode } from "@mw/core/types";
+import { loadKey, loadProvider, migrateLegacyKeys, saveKey, saveProvider } from "./aiKeys";
+import type { AIMode, AIProviderId } from "@mw/core/types";
 
 const MODE_STORAGE = "mw_ai_mode";
 
 interface AIContextValue {
-  hasKey: boolean;
+  provider: AIProviderId;
+  /** Switch the active provider; the exposed key follows the new provider. */
+  setProvider: (p: AIProviderId) => void;
+  /** Active provider's key. */
   key: string;
-  setKey: (v: string) => void;
+  hasKey: boolean;
+  /** Save a key for a provider and make it the active one (used by the setup modal). */
+  applyKey: (provider: AIProviderId, key: string) => void;
   mode: AIMode;
   setMode: (m: AIMode) => void;
   isOpen: boolean;
@@ -26,17 +31,29 @@ function loadMode(): AIMode {
 }
 
 export function AIProvider({ children }: { children: React.ReactNode }) {
+  const [provider, setProviderState] = useState<AIProviderId>("anthropic");
   const [key, setKeyState] = useState("");
   const [mode, setModeState] = useState<AIMode>("fast");
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    setKeyState(loadAnthropicKey());
+    migrateLegacyKeys();
+    const p = loadProvider();
+    setProviderState(p);
+    setKeyState(loadKey(p));
     setModeState(loadMode());
   }, []);
 
-  const setKey = useCallback((v: string) => {
-    saveAnthropicKey(v);
+  const setProvider = useCallback((p: AIProviderId) => {
+    saveProvider(p);
+    setProviderState(p);
+    setKeyState(loadKey(p));
+  }, []);
+
+  const applyKey = useCallback((p: AIProviderId, v: string) => {
+    saveKey(p, v);
+    saveProvider(p);
+    setProviderState(p);
     setKeyState(v.trim());
   }, []);
 
@@ -47,9 +64,11 @@ export function AIProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AIContextValue>(
     () => ({
-      hasKey: !!key,
+      provider,
+      setProvider,
       key,
-      setKey,
+      hasKey: !!key,
+      applyKey,
       mode,
       setMode,
       isOpen,
@@ -57,7 +76,7 @@ export function AIProvider({ children }: { children: React.ReactNode }) {
       close: () => setIsOpen(false),
       toggle: () => setIsOpen((o) => !o),
     }),
-    [key, mode, isOpen, setKey, setMode],
+    [provider, setProvider, key, applyKey, mode, setMode, isOpen],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

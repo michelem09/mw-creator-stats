@@ -96,7 +96,11 @@ export interface CompareConfig {
 
 export type AIMode = "fast" | "precise";
 
+/** Which LLM backend answers the Insights questions. */
+export type AIProviderId = "anthropic" | "gemini";
+
 export interface AIAskRequest {
+  provider: AIProviderId;
   apiKey: string;
   mode: AIMode;
   question: string;
@@ -111,6 +115,7 @@ export interface AIChatEntry {
   question: string;
   answer: string;
   mode: AIMode;
+  provider?: AIProviderId;
   askedAt: number;
   finishedAt: number | null;
   error: string | null;
