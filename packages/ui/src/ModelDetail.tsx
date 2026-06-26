@@ -168,7 +168,7 @@ function InsightsButton() {
     <button
       onClick={open}
       className="rounded-lg border border-violet/40 bg-panel2 px-3 py-1.5 text-xs font-semibold text-violet hover:border-violet hover:bg-violet/10"
-      title={hasKey ? "Ask Claude about this model" : "Set your Anthropic key and ask Claude"}
+      title={hasKey ? "Ask AI about this model" : "Set an API key (Claude or free Gemini) and ask"}
     >
       ✨ Insights
     </button>

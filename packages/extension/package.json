@@ -9,10 +9,12 @@
     "watch": "vite build --watch",
     "icons": "node scripts/gen-icons.mjs",
     "assets": "node scripts/gen-store-assets.mjs",
-    "pack": "npm run build && rm -f mw-creator-stats-extension.zip && cd dist && zip -qr ../mw-creator-stats-extension.zip . && cd .. && echo 'packed -> packages/extension/mw-creator-stats-extension.zip'",
+    "pack": "yarn build && rm -f mw-creator-stats-extension.zip && cd dist && zip -qr ../mw-creator-stats-extension.zip . && cd .. && echo 'packed -> packages/extension/mw-creator-stats-extension.zip'",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@fontsource/archivo": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
     "@mw/core": "*",
     "@mw/ui": "*",
     "react": "^19.0.0",

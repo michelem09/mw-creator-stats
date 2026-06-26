@@ -28,7 +28,7 @@ It ships as **two targets that share one codebase**:
   questions about your data. The call goes **directly from your browser** to
   `api.anthropic.com`; the key only ever lives in your browser's `localStorage`.
 
-## Repository layout (npm workspaces)
+## Repository layout (Yarn workspaces)
 
 ```
 packages/
@@ -45,13 +45,13 @@ Storage (IndexedDB) and the AI call are identical in both.
 
 ## Run the standalone web app
 
-Requires **Node.js 20+**.
+Requires **Node.js 20+** and **Yarn 1.x**.
 
 ```bash
 git clone <your-fork-url> mw-creator-stats
 cd mw-creator-stats
-npm install
-npm run dev          # web target on http://localhost:3617
+yarn install
+yarn dev             # web target on http://localhost:3617
 ```
 
 The first time, a modal asks for your MakerWorld cookie (see below). Snapshots are saved in
@@ -74,8 +74,8 @@ sidesteps this entirely by using your live session.)
 ## Build & load the Chrome extension
 
 ```bash
-npm install
-npm run build:ext           # outputs packages/extension/dist
+yarn install
+yarn build:ext              # outputs packages/extension/dist
 ```
 
 Then in Chrome: **chrome://extensions → enable Developer mode → Load unpacked →** select
@@ -97,16 +97,16 @@ Everything needed for a Chrome Web Store submission lives in the repo:
 - **Listing copy & review-form answers** (name, summary, description, permission
   justifications, data disclosures): [`packages/extension/STORE_LISTING.md`](packages/extension/STORE_LISTING.md).
 - **Privacy policy**: [`PRIVACY.md`](PRIVACY.md) — host it (e.g. GitHub) and use its URL in the listing.
-- **Icons**: generated into `packages/extension/public/icons/` (`npm run icons -w @mw/extension`).
+- **Icons**: generated into `packages/extension/public/icons/` (`yarn workspace @mw/extension icons`).
 - **Promo graphics**: `packages/extension/store-assets/` — 440×280 tile and 1400×560 marquee
-  (`npm run assets -w @mw/extension`).
+  (`yarn workspace @mw/extension assets`).
 - **Screenshots**: capture real ones with the demo seeder — see
   [`store-assets/SCREENSHOTS.md`](packages/extension/store-assets/SCREENSHOTS.md). Paste
   `scripts/demo-seed.js` into the DevTools console to populate the dashboard with realistic
   data, then screenshot at 1280×800.
 - **Package for upload**:
   ```bash
-  npm run pack -w @mw/extension   # -> packages/extension/mw-creator-stats-extension.zip
+  yarn workspace @mw/extension pack   # -> packages/extension/mw-creator-stats-extension.zip
   ```
 
 ## How it works

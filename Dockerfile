@@ -4,8 +4,8 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY . .
-RUN npm ci
-RUN npm run build
+RUN yarn install --frozen-lockfile
+RUN yarn build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
@@ -13,4 +13,4 @@ ENV NODE_ENV=production
 ENV PORT=3617
 COPY --from=builder /app ./
 EXPOSE 3617
-CMD ["npm", "run", "start", "-w", "@mw/web"]
+CMD ["yarn", "workspace", "@mw/web", "start"]

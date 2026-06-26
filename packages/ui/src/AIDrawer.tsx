@@ -4,6 +4,7 @@ import { AISetup } from "./AISetup";
 import { useAI } from "./AIProvider";
 import { MiniMarkdown } from "./MiniMarkdown";
 import { askInsights } from "@mw/core/ai/ask";
+import { providerMeta } from "@mw/core/ai/providers";
 import type { AIChatEntry, AIMode, Snapshot } from "@mw/core/types";
 
 interface Props {
@@ -14,7 +15,7 @@ interface Props {
 }
 
 export function AIDrawer({ snapshot, prevSnapshot, focusModelId, suggestedPrompts }: Props) {
-  const { isOpen, close, hasKey, key, setKey, mode, setMode } = useAI();
+  const { isOpen, close, hasKey, key, provider, mode, setMode } = useAI();
   const [showSetup, setShowSetup] = useState(false);
   const [question, setQuestion] = useState("");
   const [entries, setEntries] = useState<AIChatEntry[]>([]);
@@ -50,6 +51,7 @@ export function AIDrawer({ snapshot, prevSnapshot, focusModelId, suggestedPrompt
       question: q,
       answer: "",
       mode,
+      provider,
       askedAt: Date.now(),
       finishedAt: null,
       error: null,
@@ -64,6 +66,7 @@ export function AIDrawer({ snapshot, prevSnapshot, focusModelId, suggestedPrompt
     try {
       const stream = await askInsights(
         {
+          provider,
           apiKey: key,
           mode,
           question: q,
@@ -147,7 +150,7 @@ export function AIDrawer({ snapshot, prevSnapshot, focusModelId, suggestedPrompt
               onClick={() => setShowSetup(true)}
               className="ml-1 font-semibold text-amber underline hover:text-ink"
             >
-              set Anthropic key
+              set API key
             </button>
           )}
         </div>
@@ -197,7 +200,7 @@ export function AIDrawer({ snapshot, prevSnapshot, focusModelId, suggestedPrompt
               placeholder={
                 hasKey
                   ? "Ask anything about your stats… (⌘+Enter to send)"
-                  : "Set your Anthropic key first"
+                  : "Set your API key first"
               }
               className="h-16 flex-1 resize-none rounded-lg border border-line bg-panel2 p-2 font-mono text-xs text-ink focus:border-teal focus:outline-none"
               onKeyDown={(e) => {
@@ -218,11 +221,7 @@ export function AIDrawer({ snapshot, prevSnapshot, focusModelId, suggestedPrompt
         </div>
       </aside>
 
-      <AISetup
-        open={showSetup}
-        onClose={() => setShowSetup(false)}
-        onSaved={(k) => setKey(k)}
-      />
+      <AISetup open={showSetup} onClose={() => setShowSetup(false)} />
     </>
   );
 }
@@ -262,7 +261,9 @@ function Entry({ entry }: { entry: AIChatEntry }) {
       </div>
       <div className="rounded-lg border border-teal/30 bg-bg px-3 py-2">
         <div className="flex items-center justify-between">
-          <div className="text-[10px] uppercase tracking-widest text-teal">Claude</div>
+          <div className="text-[10px] uppercase tracking-widest text-teal">
+            {providerMeta(entry.provider ?? "anthropic").shortLabel}
+          </div>
           <div className="text-[10px] uppercase tracking-widest text-ink3">{entry.mode}</div>
         </div>
         {entry.error ? (
