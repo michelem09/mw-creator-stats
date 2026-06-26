@@ -1,4 +1,10 @@
 import type { Metadata } from "next";
+// Self-hosted fonts (bundled, no remote Google Fonts fetch).
+import "@fontsource/archivo/400.css";
+import "@fontsource/archivo/600.css";
+import "@fontsource/archivo/800.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/600.css";
 import "./globals.css";
 import { Providers } from "./providers";
 
