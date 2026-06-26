@@ -7,8 +7,8 @@ MakerWorld data — use the bundled demo seeder.
 ## Steps
 
 1. Run the app you want to shoot:
-   - Web: `npm run dev` → open <http://localhost:3617>, **or**
-   - Extension: `npm run build:ext`, load `packages/extension/dist` unpacked, open the
+   - Web: `yarn dev` → open <http://localhost:3617>, **or**
+   - Extension: `yarn build:ext`, load `packages/extension/dist` unpacked, open the
      full-page tab.
 2. Open **DevTools → Console**, paste the contents of `../scripts/demo-seed.js`, press Enter.
 3. **Reload** the page — the dashboard now shows a realistic last-30-days snapshot.

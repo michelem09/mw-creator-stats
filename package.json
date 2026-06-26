@@ -11,14 +11,15 @@
     "packages/extension"
   ],
   "scripts": {
-    "dev": "npm run dev -w @mw/web",
-    "build": "npm run build -w @mw/web",
-    "build:ext": "npm run build -w @mw/extension",
-    "watch:ext": "npm run watch -w @mw/extension",
-    "lint": "npm run lint -w @mw/web",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "dev": "yarn workspace @mw/web dev",
+    "build": "yarn workspace @mw/web build",
+    "build:ext": "yarn workspace @mw/extension build",
+    "watch:ext": "yarn workspace @mw/extension watch",
+    "lint": "yarn workspace @mw/web lint",
+    "typecheck": "yarn workspaces run typecheck"
   },
   "devDependencies": {
     "typescript": "^5.6.3"
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }
