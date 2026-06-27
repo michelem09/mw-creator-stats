@@ -32,7 +32,12 @@ export async function streamGemini(opts: GeminiCallInput): Promise<ReadableStrea
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: system }] },
       contents: [{ role: "user", parts: [{ text: user }] }],
-      generationConfig: { maxOutputTokens: maxTokens },
+      generationConfig: {
+        maxOutputTokens: maxTokens,
+        // Gemini 2.5 models "think" by default, which can consume the whole
+        // output budget and return no answer text. This Q&A doesn't need it.
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     }),
     signal,
   });
