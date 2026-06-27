@@ -106,8 +106,14 @@ export function AISetup({
             <li>Create an API key.</li>
             {!meta.free && <li>Add a small amount of credit if your account has none (e.g. $5).</li>}
             <li>
-              Copy the key (starts with{" "}
-              <code className="text-amber">{meta.keyPrefix}…</code>) and paste it below.
+              {meta.keyPrefix ? (
+                <>
+                  Copy the key (starts with{" "}
+                  <code className="text-amber">{meta.keyPrefix}…</code>) and paste it below.
+                </>
+              ) : (
+                "Copy the key and paste it below."
+              )}
             </li>
           </ol>
         </details>
