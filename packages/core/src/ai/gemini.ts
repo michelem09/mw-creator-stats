@@ -56,34 +56,40 @@ export async function streamGemini(opts: GeminiCallInput): Promise<ReadableStrea
   const reader = upstream.body.getReader();
   const decoder = new TextDecoder();
 
+  // Gemini's SSE uses CRLF line endings, so events are separated by \r\n\r\n and
+  // lines by \r\n. Be tolerant of both, and flush any trailing event when the
+  // stream ends without a final blank line.
+  const emitEvent = (controller: ReadableStreamDefaultController<string>, event: string) => {
+    for (const line of event.split(/\r?\n/)) {
+      if (!line.startsWith("data:")) continue;
+      const payload = line.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const parsed = JSON.parse(payload) as GeminiStreamChunk;
+        const text = parsed.candidates?.[0]?.content?.parts
+          ?.map((p) => p.text ?? "")
+          .join("");
+        if (text) controller.enqueue(text);
+      } catch {
+        /* skip malformed event */
+      }
+    }
+  };
+
   return new ReadableStream<string>({
     async pull(controller) {
       let buffer = "";
       while (true) {
         const { value, done } = await reader.read();
         if (done) {
+          if (buffer.trim()) emitEvent(controller, buffer);
           controller.close();
           return;
         }
         buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split("\n\n");
+        const parts = buffer.split(/\r?\n\r?\n/);
         buffer = parts.pop() ?? "";
-        for (const part of parts) {
-          for (const line of part.split("\n")) {
-            if (!line.startsWith("data:")) continue;
-            const payload = line.slice(5).trim();
-            if (!payload || payload === "[DONE]") continue;
-            try {
-              const parsed = JSON.parse(payload) as GeminiStreamChunk;
-              const text = parsed.candidates?.[0]?.content?.parts
-                ?.map((p) => p.text ?? "")
-                .join("");
-              if (text) controller.enqueue(text);
-            } catch {
-              /* skip malformed event */
-            }
-          }
-        }
+        for (const part of parts) emitEvent(controller, part);
       }
     },
     async cancel() {
