@@ -1,6 +1,6 @@
 # Privacy Policy — MakerWorld Creator Stats
 
-_Last updated: 2026-06-24_
+_Last updated: 2026-06-27_
 
 MakerWorld Creator Stats ("the extension") is an unofficial, client-side analytics
 dashboard for your own [MakerWorld](https://makerworld.com) Creator Center data. It is not
@@ -17,8 +17,8 @@ own browser, and your data stays in your own browser.**
 - Stores the resulting snapshots and a small metadata cache **locally in your browser**
   (IndexedDB).
 - Optionally, if you enable AI Insights, sends the snapshot you are viewing (or a curated
-  digest of it) **directly from your browser to the Anthropic API** using an API key that
-  you provide.
+  digest of it) **directly from your browser to the AI provider you choose** — Google Gemini
+  or Anthropic — using an API key that you provide.
 
 ## Data we collect
 
@@ -30,19 +30,27 @@ tracking, no accounts. The developer has no access to your data and cannot see i
 | Data | Stored in | Sent to |
 |------|-----------|---------|
 | Creator Center snapshots & metadata cache | Your browser (IndexedDB) | Nobody |
-| Your Anthropic API key (only if you use AI Insights) | Your browser (`localStorage`) | `api.anthropic.com`, directly, as the request credential |
-| The snapshot/digest for a question (only if you use AI Insights) | — | `api.anthropic.com`, directly |
+| Your AI API key (only if you use AI Insights) | Your browser (`localStorage`) | The provider you chose (Google Gemini or Anthropic), directly, as the request credential |
+| The snapshot/digest for a question (only if you use AI Insights) | — | The provider you chose, directly |
 
 Your MakerWorld data is sent only to MakerWorld's own servers (the requests that fetch it).
-When you use AI Insights, the data for that question and your key are sent only to Anthropic.
-Nothing passes through any server owned by the extension or its developer.
+When you use AI Insights, the data for that question and your key are sent only to the AI
+provider you selected. Nothing passes through any server owned by the extension or its
+developer.
 
 ## Third-party services
 
 - **MakerWorld** (`makerworld.com`) — your analytics are read from here using your session.
   See MakerWorld's own privacy policy for how they handle your account data.
-- **Anthropic** (`api.anthropic.com`) — used **only if** you enable AI Insights, with **your**
-  API key. See [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy).
+- **Google Gemini** (`generativelanguage.googleapis.com`) — used **only if** you enable AI
+  Insights and select Gemini, with **your** API key. See
+  [Google's privacy policy](https://policies.google.com/privacy).
+- **Anthropic** (`api.anthropic.com`) — used **only if** you enable AI Insights and select
+  Anthropic, with **your** API key. See
+  [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy).
+
+You choose the provider, and AI requests are made only to the one you select. If you never
+enable AI Insights, no request is sent to either provider.
 
 ## Permissions and why they are needed
 
@@ -50,10 +58,12 @@ Nothing passes through any server owned by the extension or its developer.
 - **Host access to `https://makerworld.com/*`** — to read your Creator Center analytics
   using your logged-in session.
 - **Host access to `https://api.anthropic.com/*`** — only to deliver AI Insights requests
-  (when you enable them) directly to Anthropic with your own key.
+  (when you enable them and select Anthropic) directly to Anthropic with your own key.
 
-The extension does not request access to your browsing history, tabs of other sites, or any
-data unrelated to MakerWorld analytics.
+When you select Google Gemini, requests are sent directly from your browser to
+`generativelanguage.googleapis.com` as standard cross-origin requests with your own key; this
+does not require a host permission. The extension does not request access to your browsing
+history, tabs of other sites, or any data unrelated to MakerWorld analytics.
 
 ## Removing your data
 

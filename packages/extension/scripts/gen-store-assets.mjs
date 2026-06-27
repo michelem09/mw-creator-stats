@@ -11,14 +11,40 @@ mkdirSync(outDir, { recursive: true });
 const FONT = "DejaVu Sans, sans-serif";
 
 // Reusable bar-chart logo mark, scalable via translate/scale.
+// Bars form an "M": two tall outer bars, a lower middle one.
 function logo(x, y, s) {
   return `
     <g transform="translate(${x},${y}) scale(${s})">
       <rect x="0" y="0" width="128" height="128" rx="28" fill="#1d1812" stroke="#332a1f" stroke-width="3"/>
-      <rect x="24" y="68" width="20" height="34" rx="5" fill="#3fb9a6"/>
-      <rect x="50" y="48" width="20" height="54" rx="5" fill="#e8902a"/>
+      <rect x="24" y="26" width="20" height="76" rx="5" fill="#3fb9a6"/>
+      <rect x="50" y="54" width="20" height="48" rx="5" fill="#e8902a"/>
       <rect x="76" y="26" width="20" height="76" rx="5" fill="#e8dfd2"/>
     </g>`;
+}
+
+// 4-pointed star path centered at (cx, cy).
+function starPath(cx, cy, ro, ri) {
+  const pts = [];
+  for (let i = 0; i < 8; i++) {
+    const angle = (i * Math.PI) / 4 - Math.PI / 2;
+    const r = i % 2 === 0 ? ro : ri;
+    pts.push(`${(cx + r * Math.cos(angle)).toFixed(2)},${(cy + r * Math.sin(angle)).toFixed(2)}`);
+  }
+  return `M ${pts.join(" L ")} Z`;
+}
+
+// "AI Insights" pill badge, top-left corner at (x, y).
+function badge(x, y, w, h, fontSize) {
+  const r = h / 2;
+  const cy = y + h / 2;
+  const starX = x + r + 1;
+  const star = starPath(starX, cy, r * 0.48, r * 0.2);
+  const textX = starX + r * 0.48 + 6;
+  const textY = cy + Math.round(fontSize * 0.37);
+  return `
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="#4f46e5"/>
+    <path d="${star}" fill="white"/>
+    <text x="${textX}" y="${textY}" font-family="${FONT}" font-size="${fontSize}" font-weight="700" fill="white">AI Insights</text>`;
 }
 
 function marquee() {
@@ -36,6 +62,7 @@ function marquee() {
     <text x="422" y="372" font-family="${FONT}" font-size="30" fill="#b9ad99">Private, full-page analytics for your MakerWorld models.</text>
     <text x="422" y="412" font-family="${FONT}" font-size="30" fill="#b9ad99">Date ranges, comparisons, drill-down — all in your browser.</text>
     <text x="422" y="476" font-family="${FONT}" font-size="22" fill="#807461">by @michelem · unofficial</text>
+    ${badge(1400 - 200 - 40, 40, 200, 38, 16)}
   </svg>`;
 }
 
@@ -49,9 +76,11 @@ function tile() {
     <text x="40" y="196" font-family="${FONT}" font-size="20" fill="#b9ad99">Private analytics dashboard for</text>
     <text x="40" y="226" font-family="${FONT}" font-size="20" fill="#b9ad99">your MakerWorld models.</text>
     <text x="40" y="262" font-family="${FONT}" font-size="15" fill="#807461">by @michelem · runs in your browser</text>
+    ${badge(440 - 152 - 24, 24, 152, 30, 13)}
   </svg>`;
 }
 
-await sharp(Buffer.from(marquee())).png().toFile(resolve(outDir, "promo-1400x560.png"));
-await sharp(Buffer.from(tile())).png().toFile(resolve(outDir, "promo-440x280.png"));
+// Store requires 24-bit PNG with no alpha channel.
+await sharp(Buffer.from(marquee())).removeAlpha().png().toFile(resolve(outDir, "promo-1400x560.png"));
+await sharp(Buffer.from(tile())).removeAlpha().png().toFile(resolve(outDir, "promo-440x280.png"));
 console.log("generated: promo-1400x560.png, promo-440x280.png");

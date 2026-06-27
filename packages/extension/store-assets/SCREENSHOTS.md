@@ -4,6 +4,11 @@ The Chrome Web Store requires **1–5 screenshots** at **1280×800** (or 640×40
 Real screenshots of the actual UI are expected (mockups risk rejection). You don't need live
 MakerWorld data — use the bundled demo seeder.
 
+> Ready-to-upload screenshots already live in `screenshots/` (1280×800, no alpha):
+> `01-overview.png`, `02-model-drilldown.png`, `03-traffic-sources.png`,
+> `04-recency-catalogue.png`, `05-ai-insights.png`. Regenerate by re-capturing at DPR 2
+> (2560×1600) and downscaling 50% — see the tip at the bottom.
+
 ## Steps
 
 1. Run the app you want to shoot:
