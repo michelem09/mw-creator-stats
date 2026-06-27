@@ -95,9 +95,8 @@ export async function streamGemini(opts: GeminiCallInput): Promise<ReadableStrea
 export async function testGeminiKey(apiKey: string): Promise<{ ok: boolean; error?: string }> {
   const key = (apiKey || "").trim();
   if (!key) return { ok: false, error: "No API key provided" };
-  if (!key.startsWith("AIza")) {
-    return { ok: false, error: "Key does not look like a Google API key (usually starts with AIza)." };
-  }
+  // No prefix check: Google AI Studio keys come in multiple formats (AIza…, AQ.…),
+  // so let the API be the source of truth.
   try {
     const r = await fetch(`${BASE}/models?key=${encodeURIComponent(key)}`);
     if (r.ok) return { ok: true };
