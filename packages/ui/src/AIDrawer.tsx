@@ -136,21 +136,24 @@ export function AIDrawer({ snapshot, prevSnapshot, focusModelId, suggestedPrompt
 
         <ModeToggle mode={mode} setMode={setMode} />
 
-        <div className="border-b border-line/60 px-4 py-2 text-[11px] text-ink3">
-          One-shot Q&amp;A — each question is independent. <b>No memory between turns.</b>{" "}
+        <div className="flex items-center justify-between gap-2 border-b border-line/60 px-4 py-2">
+          <span className="text-[11px] text-ink3">
+            One-shot Q&amp;A · <b>no memory between turns</b>
+          </span>
           {hasKey ? (
             <button
               onClick={() => setShowSetup(true)}
-              className="ml-1 underline hover:text-ink"
+              className="shrink-0 rounded-md border border-line bg-panel2 px-2.5 py-1 text-[11px] font-medium text-ink2 hover:border-teal hover:text-ink"
+              title="Change provider or API key"
             >
-              update key
+              ⚙ {providerMeta(provider).shortLabel} key
             </button>
           ) : (
             <button
               onClick={() => setShowSetup(true)}
-              className="ml-1 font-semibold text-amber underline hover:text-ink"
+              className="shrink-0 rounded-md border border-amber/50 bg-amber/10 px-2.5 py-1 text-[11px] font-semibold text-amber hover:bg-amber/20"
             >
-              set API key
+              Set API key
             </button>
           )}
         </div>
