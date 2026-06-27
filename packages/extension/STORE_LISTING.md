@@ -120,7 +120,7 @@ https://github.com/michelem09/mw-creator-stats/blob/main/PRIVACY.md
 ## Packaging
 
 ```
-yarn workspace @mw/extension pack
+yarn zip:ext
 ```
 produces `packages/extension/mw-creator-stats-extension.zip` (manifest at the zip root) for
 upload to the Developer Dashboard.

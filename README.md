@@ -106,7 +106,7 @@ Everything needed for a Chrome Web Store submission lives in the repo:
   data, then screenshot at 1280×800.
 - **Package for upload**:
   ```bash
-  yarn workspace @mw/extension pack   # -> packages/extension/mw-creator-stats-extension.zip
+  yarn zip:ext   # -> packages/extension/mw-creator-stats-extension.zip
   ```
 
 ## How it works

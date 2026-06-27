@@ -14,6 +14,7 @@
     "dev": "yarn workspace @mw/web dev",
     "build": "yarn workspace @mw/web build",
     "build:ext": "yarn workspace @mw/extension build",
+    "zip:ext": "yarn workspace @mw/extension zip",
     "watch:ext": "yarn workspace @mw/extension watch",
     "lint": "yarn workspace @mw/web lint",
     "typecheck": "yarn workspaces run typecheck"
