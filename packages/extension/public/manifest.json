@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MakerWorld Creator Stats",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MakerWorld Creator Center analytics dashboard: date ranges, comparison, drill-down per model, optional AI insights. Unofficial.",
   "icons": {
     "16": "icons/icon-16.png",
@@ -19,7 +19,6 @@
     }
   },
   "background": { "service_worker": "background.js", "type": "module" },
-  "permissions": ["storage"],
   "host_permissions": [
     "https://makerworld.com/*",
     "https://*.makerworld.com/*",

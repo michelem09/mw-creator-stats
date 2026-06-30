@@ -87,12 +87,15 @@ the user's existing browser session. This is the core function of the extension 
 no public MakerWorld analytics API.
 
 api.anthropic.com: used only if the user opts into the optional AI Insights feature and
-provides their own Anthropic API key. The analytics snapshot for the user's question is sent
-directly from the browser to Anthropic. No request is made unless the user enables this
-feature.
+selects Anthropic as the provider, with their own API key. The analytics snapshot for the
+user's question is sent directly from the browser to Anthropic. No request is made unless the
+user enables this feature.
+
+The optional AI Insights feature also supports Google Gemini (the default provider). When
+Gemini is selected, the request goes directly from the browser to
+generativelanguage.googleapis.com as a standard CORS request with the user's own API key;
+this needs no host permission, so that host is intentionally not declared in the manifest.
 ```
-> Note: the Gemini provider (default) calls `generativelanguage.googleapis.com` via standard
-> cross-origin requests and needs no host permission, so it is not listed in the manifest.
 
 **Are you using remote code?** → **No, I am not using remote code.**
 All JS is bundled in the package (fonts self-hosted, no external `<script>`, no `eval`). The
