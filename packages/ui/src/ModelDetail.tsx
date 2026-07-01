@@ -13,6 +13,7 @@ import type { CompareConfig, CompareMode, ModelStat, Snapshot } from "@mw/core/t
 import { CHART_TOOLTIP, ageColor } from "@mw/core/chartTheme";
 import { suggestedPrompts } from "@mw/core/ai/prompts";
 import { idbStore } from "@mw/core/adapters/store-idb";
+import { PointsBreakdown } from "./sections/PointsBreakdown";
 
 const SRC_COLORS = ["#3fb9a6", "#e8902a", "#9b7dd6", "#5b9bd6", "#807461"];
 const SRC_LABELS = ["Recommend", "Search", "Browse", "Direct", "Other"];
@@ -293,6 +294,8 @@ function Detail({ m, prev }: { m: ModelStat; prev: ModelStat | null }) {
           </div>
         </div>
       </section>
+
+      {m.points && <PointsBreakdown points={m.points} />}
 
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-xl border border-line bg-panel p-5">

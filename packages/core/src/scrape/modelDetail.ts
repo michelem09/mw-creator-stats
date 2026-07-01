@@ -1,5 +1,7 @@
 import { BASE, sleep } from "./session";
 import type { Fetcher } from "../ports";
+import type { PointsData } from "../types";
+import { parsePointsData } from "./points";
 
 export interface ModelSummary {
   impression?: number | string;
@@ -28,10 +30,20 @@ export interface ModelDetail {
   summary: ModelSummary;
   trafficSource: ModelTrafficSource;
   designInfo: ModelDesignInfo;
+  /** This model's daily points/boost series, parsed from `modelData.dateList`. */
+  points: PointsData | null;
+}
+
+// The raw payload carries more than we type here (summary/trafficSource/designInfo);
+// `dateList` sits alongside them and feeds parsePointsData.
+interface RawModelData {
+  summary?: ModelSummary;
+  trafficSource?: ModelTrafficSource;
+  designInfo?: ModelDesignInfo;
 }
 
 interface DetailShape {
-  pageProps?: { modelData?: ModelDetail };
+  pageProps?: { modelData?: RawModelData };
 }
 
 export async function getModelDetail(
@@ -60,6 +72,7 @@ export async function getModelDetail(
         summary: md.summary || {},
         trafficSource: md.trafficSource || {},
         designInfo: md.designInfo || {},
+        points: parsePointsData(md),
       };
     } catch (e) {
       lastErr = e;

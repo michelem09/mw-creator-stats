@@ -139,6 +139,7 @@ function buildModelStat(p: Processed, today: Date): ModelStat | null {
     viewPerDay,
     dlPerDay,
     cover: p.meta.cover,
+    ...(p.detail.points ? { points: p.detail.points } : {}),
   };
 }
 
@@ -153,7 +154,7 @@ export async function* runScrape(
   const { buildId, html } = await getPageContext(fetcher);
 
   yield { stage: "list", message: "Fetching model list" };
-  const raw = await getModelList(fetcher, buildId, start, end, html);
+  const { list: raw, points } = await getModelList(fetcher, buildId, start, end, html);
 
   const total = raw.length;
   const today = new Date();
@@ -229,6 +230,7 @@ export async function* runScrape(
       hasMetadata: !skipMetadata && metaErrors < raw.length,
     },
     models,
+    ...(points ? { points } : {}),
   };
 
   if (!skipMetadata) {

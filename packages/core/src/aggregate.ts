@@ -1,4 +1,4 @@
-import type { ModelStat, TrafficSource } from "./types";
+import type { ModelStat, TrafficSource, PointsData, PointsSummary } from "./types";
 
 export interface Totals {
   impr: number;
@@ -73,6 +73,77 @@ export function byCategory(
       return { ...a, ts };
     })
     .sort((a, b) => b.view - a.view);
+}
+
+// ---------- Reward points / boost ----------
+
+// How many reward points a single boost is worth, by model status. MakerWorld
+// keeps boosts as a separate count and converts them to points; these rates can
+// change over time, so they live here as the single source of truth.
+export const BOOST_POINTS = { regular: 12, exclusive: 15 } as const;
+
+export interface PointsBreakdown {
+  pointRegular: number;
+  pointExclusive: number;
+  /** Raw boost counts. */
+  boostRegular: number;
+  boostExclusive: number;
+  /** Boost counts converted to points via BOOST_POINTS. */
+  boostRegularPts: number;
+  boostExclusivePts: number;
+  /** Native points only (regular + exclusive), matching MakerWorld's headline. */
+  totalPoints: number;
+  /** Raw boost count (regular + exclusive). */
+  totalBoost: number;
+  /** Boost expressed in points (regular + exclusive). */
+  totalBoostPts: number;
+  /** Everything in points: native points + boost-as-points. */
+  grandTotalPoints: number;
+}
+
+export function pointsBreakdown(summary: PointsSummary): PointsBreakdown {
+  const boostRegularPts = summary.boostRegular * BOOST_POINTS.regular;
+  const boostExclusivePts = summary.boostExclusive * BOOST_POINTS.exclusive;
+  const totalPoints = summary.pointRegular + summary.pointExclusive;
+  const totalBoostPts = boostRegularPts + boostExclusivePts;
+  return {
+    pointRegular: summary.pointRegular,
+    pointExclusive: summary.pointExclusive,
+    boostRegular: summary.boostRegular,
+    boostExclusive: summary.boostExclusive,
+    boostRegularPts,
+    boostExclusivePts,
+    totalPoints,
+    totalBoost: summary.boostRegular + summary.boostExclusive,
+    totalBoostPts,
+    grandTotalPoints: totalPoints + totalBoostPts,
+  };
+}
+
+export interface PointsDailyPoint {
+  date: string;
+  pointRegular: number;
+  pointExclusive: number;
+  boostRegularPts: number;
+  boostExclusivePts: number;
+  total: number;
+}
+
+/** Daily series for the stacked chart: the 4 point sources (boosts already converted
+ *  to points) plus their per-day total. */
+export function pointsDailySeries(data: PointsData): PointsDailyPoint[] {
+  return data.daily.map((d) => {
+    const boostRegularPts = d.boostRegular * BOOST_POINTS.regular;
+    const boostExclusivePts = d.boostExclusive * BOOST_POINTS.exclusive;
+    return {
+      date: d.date,
+      pointRegular: d.pointRegular,
+      pointExclusive: d.pointExclusive,
+      boostRegularPts,
+      boostExclusivePts,
+      total: d.pointRegular + d.pointExclusive + boostRegularPts + boostExclusivePts,
+    };
+  });
 }
 
 export function trafficMixCatalog(models: ModelStat[]): TrafficSource {

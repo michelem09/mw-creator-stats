@@ -6,6 +6,8 @@ import { SyncButton } from "./SyncButton";
 import { CompareToggle } from "./CompareToggle";
 import { useSync } from "./SyncProvider";
 import { Overview } from "./sections/Overview";
+import { PointsOverview } from "./sections/PointsOverview";
+import { PointsBreakdown } from "./sections/PointsBreakdown";
 import { Categories } from "./sections/Categories";
 import { Conversions } from "./sections/Conversions";
 import { TrafficSources } from "./sections/TrafficSources";
@@ -199,6 +201,10 @@ export function Dashboard({ sessionAuth = false }: { sessionAuth?: boolean }) {
       {snap && agg && (
         <div className="space-y-10">
           <Overview t={agg.totals} prev={prevAgg?.totals} />
+          {snap.points && (
+            <PointsOverview summary={snap.points.summary} prev={prevSnap?.points?.summary} />
+          )}
+          {snap.points && <PointsBreakdown points={snap.points} />}
           <PortfolioAge models={snap.models} />
           <Categories cats={agg.categories} prevCats={prevAgg?.categories} />
           {prevSnap && <BiggestMovers models={snap.models} prevModels={prevSnap.models} />}

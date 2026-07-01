@@ -62,3 +62,11 @@ export const TRAFFIC_SOURCE_COLORS = [
   "#5b9bd6", // direct
   "#807461", // other
 ] as const;
+
+// Colours for the 4 reward-point sources (regular/exclusive points + boosts).
+export const POINTS_SOURCE_COLORS = {
+  pointRegular: "#7dd6a4", // green
+  pointExclusive: "#3fb9a6", // teal
+  boostRegular: "#e8c54a", // gold
+  boostExclusive: "#9b7dd6", // violet
+} as const;

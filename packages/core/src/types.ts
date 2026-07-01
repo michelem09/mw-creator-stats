@@ -30,6 +30,8 @@ export interface ModelStat {
   viewPerDay: number | null;
   dlPerDay: number | null;
   cover?: string;
+  /** This model's daily points/boost series. Optional: absent on pre-feature snapshots. */
+  points?: PointsData;
 }
 
 export interface SnapshotMeta {
@@ -42,9 +44,37 @@ export interface SnapshotMeta {
   hasMetadata: boolean;
 }
 
+/** Reward points/boost split by model status (regular vs MakerWorld-exclusive),
+ *  taken straight from MakerWorld's data-overview `statisticalData.summary`.
+ *  `boost*` are raw boost counts (not yet converted to points). */
+export interface PointsSummary {
+  pointRegular: number;
+  pointExclusive: number;
+  boostRegular: number;
+  boostExclusive: number;
+}
+
+/** One day of the reward time-series (`statisticalData.dateList`). Points already
+ *  combine the model-download and print-instance components; boosts are raw counts. */
+export interface PointsDailyEntry {
+  date: string; // YYYY-MM-DD
+  pointRegular: number;
+  pointExclusive: number;
+  boostRegular: number;
+  boostExclusive: number;
+}
+
+export interface PointsData {
+  summary: PointsSummary;
+  daily: PointsDailyEntry[];
+}
+
 export interface Snapshot {
   meta: SnapshotMeta;
   models: ModelStat[];
+  /** Reward points/boost breakdown + daily series. Optional: snapshots taken before
+   *  this feature shipped won't have it (re-sync to populate). */
+  points?: PointsData;
 }
 
 export interface ModelMetadata {
