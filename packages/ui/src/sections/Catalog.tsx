@@ -41,6 +41,7 @@ interface Row {
 }
 
 const SENTINEL = Number.POSITIVE_INFINITY;
+const PAGE_SIZES = [10, 25, 50, 100] as const;
 
 const getCell = (r: Row, k: SortKey): number | string => {
   const m = r.m;
@@ -81,6 +82,8 @@ export function Catalog({
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "view", dir: "desc" });
   const [filter, setFilter] = useState("");
   const [cat, setCat] = useState("");
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [page, setPage] = useState(0);
 
   const categories = useMemo(
     () => [...new Set(models.map((m) => m.category || "Uncategorized"))].sort(),
@@ -129,7 +132,14 @@ export function Catalog({
       });
   }, [rows, filter, cat, sort]);
 
+  const total = filteredRows.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const clampedPage = Math.min(page, totalPages - 1);
+  const start = clampedPage * pageSize;
+  const pageRows = filteredRows.slice(start, start + pageSize);
+
   function click(k: SortKey) {
+    setPage(0);
     setSort((s) => (s.key === k ? { key: k, dir: s.dir === "asc" ? "desc" : "asc" } : { key: k, dir: "desc" }));
   }
 
@@ -140,7 +150,10 @@ export function Catalog({
         <div className="flex items-center gap-2">
           <select
             value={cat}
-            onChange={(e) => setCat(e.target.value)}
+            onChange={(e) => {
+              setCat(e.target.value);
+              setPage(0);
+            }}
             className="rounded-md border border-line bg-panel2 px-2 py-1 font-mono text-xs text-ink focus:border-teal focus:outline-none"
           >
             <option value="">All categories</option>
@@ -150,10 +163,28 @@ export function Catalog({
           </select>
           <input
             value={filter}
-            onChange={(e) => setFilter(e.target.value)}
+            onChange={(e) => {
+              setFilter(e.target.value);
+              setPage(0);
+            }}
             placeholder="filter…"
             className="rounded-md border border-line bg-panel2 px-2 py-1 font-mono text-xs text-ink focus:border-teal focus:outline-none"
           />
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(0);
+            }}
+            className="rounded-md border border-line bg-panel2 px-2 py-1 font-mono text-xs text-ink focus:border-teal focus:outline-none"
+            title="Rows per page"
+          >
+            {PAGE_SIZES.map((n) => (
+              <option key={n} value={n}>
+                {n} / page
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -176,7 +207,7 @@ export function Catalog({
             </tr>
           </thead>
           <tbody>
-            {filteredRows.map((r) => (
+            {pageRows.map((r) => (
               <tr key={r.m.id} className="border-t border-line/60 hover:bg-panel2/60">
                 <td className="px-3 py-2">
                   <NavLink href={`/models/${r.m.id}`} className="text-ink hover:text-teal">
@@ -206,7 +237,46 @@ export function Catalog({
           </tbody>
         </table>
       </div>
+
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-ink3">
+        <span className="font-mono">
+          {total === 0
+            ? "No models match"
+            : `${start + 1}–${Math.min(start + pageSize, total)} of ${total}`}
+        </span>
+        {totalPages > 1 && (
+          <div className="flex items-center gap-1">
+            <PageBtn label="« First" disabled={clampedPage === 0} onClick={() => setPage(0)} />
+            <PageBtn label="‹ Prev" disabled={clampedPage === 0} onClick={() => setPage(clampedPage - 1)} />
+            <span className="px-2 font-mono text-ink2">
+              {clampedPage + 1} / {totalPages}
+            </span>
+            <PageBtn label="Next ›" disabled={clampedPage >= totalPages - 1} onClick={() => setPage(clampedPage + 1)} />
+            <PageBtn label="Last »" disabled={clampedPage >= totalPages - 1} onClick={() => setPage(totalPages - 1)} />
+          </div>
+        )}
+      </div>
     </section>
+  );
+}
+
+function PageBtn({
+  label,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="rounded-md border border-line bg-panel2 px-2 py-1 font-mono text-xs text-ink hover:border-teal disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line"
+    >
+      {label}
+    </button>
   );
 }
 
