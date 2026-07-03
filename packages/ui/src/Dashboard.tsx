@@ -5,6 +5,7 @@ import { DateRangePicker, type DateRange } from "./DateRangePicker";
 import { SyncButton } from "./SyncButton";
 import { CompareToggle } from "./CompareToggle";
 import { useSync } from "./SyncProvider";
+import { Logo } from "./Logo";
 import { Overview } from "./sections/Overview";
 import { PointsOverview } from "./sections/PointsOverview";
 import { PointsBreakdown } from "./sections/PointsBreakdown";
@@ -142,13 +143,16 @@ export function Dashboard({ sessionAuth = false }: { sessionAuth?: boolean }) {
   return (
     <main className="mx-auto max-w-7xl px-4 py-6">
       <header className="mb-4 flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
-        <div>
-          <h1 className="h-archivo text-2xl font-extrabold tracking-tight text-ink">
-            MakerWorld Creator Stats
-          </h1>
-          <p className="text-xs text-ink2">
-            Interactive dashboard for your Creator Center data.
-          </p>
+        <div className="flex items-center gap-3">
+          <Logo size={40} className="shrink-0" />
+          <div>
+            <h1 className="h-archivo text-2xl font-extrabold tracking-tight text-ink">
+              MakerWorld Creator Stats
+            </h1>
+            <p className="text-xs text-ink2">
+              Interactive dashboard for your Creator Center data.
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <InsightsButton />

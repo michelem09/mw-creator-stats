@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Hide Next's dev overlay badge (the "N" dot + route-status indicator) so it
+  // doesn't show up in screenshots.
+  devIndicators: false,
   // core + ui are workspace packages shipped as TS source; Next must transpile them.
   transpilePackages: ["@mw/core", "@mw/ui"],
   // got-scraping (and its header-generator dep) ship data files loaded via fs.readFileSync.
