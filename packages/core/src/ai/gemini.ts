@@ -1,6 +1,10 @@
 const BASE = "https://generativelanguage.googleapis.com/v1beta";
 
-export const GEMINI_DEFAULT_MODEL = "gemini-2.5-flash";
+// Use the "-latest" alias, not a pinned version: Google retires specific model
+// IDs for new API keys over time (e.g. gemini-2.5-flash), which silently breaks
+// new users while existing keys keep working. The alias always resolves to the
+// current stable Flash model.
+export const GEMINI_DEFAULT_MODEL = "gemini-flash-latest";
 
 export interface GeminiCallInput {
   apiKey: string;
@@ -34,8 +38,9 @@ export async function streamGemini(opts: GeminiCallInput): Promise<ReadableStrea
       contents: [{ role: "user", parts: [{ text: user }] }],
       generationConfig: {
         maxOutputTokens: maxTokens,
-        // Gemini 2.5 models "think" by default, which can consume the whole
-        // output budget and return no answer text. This Q&A doesn't need it.
+        // Flash models "think" by default, which can consume the whole output
+        // budget and return no answer text. This one-shot Q&A doesn't need it,
+        // so switch thinking off.
         thinkingConfig: { thinkingBudget: 0 },
       },
     }),
