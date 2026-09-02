@@ -100,9 +100,19 @@ export function ModelDetail({ id }: { id: number }) {
         <NavLink href="/" className="text-xs text-ink3 hover:text-ink">
           ← back to dashboard
         </NavLink>
-        <h1 className="h-archivo mt-1 text-2xl font-extrabold text-ink">
-          {model?.title || `Model #${id}`}
-        </h1>
+        <div className="mt-1 flex items-center gap-3">
+          {model?.cover && (
+            <img
+              src={model.cover}
+              alt=""
+              referrerPolicy="no-referrer"
+              className="h-16 w-16 shrink-0 rounded-lg border border-line bg-panel2 object-cover"
+            />
+          )}
+          <h1 className="h-archivo text-2xl font-extrabold text-ink">
+            {model?.title || `Model #${id}`}
+          </h1>
+        </div>
       </header>
 
       <div className="sticky top-0 z-30 -mx-4 mb-6 flex flex-wrap items-center gap-3 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur">

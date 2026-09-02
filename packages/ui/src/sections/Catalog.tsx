@@ -210,10 +210,15 @@ export function Catalog({
             {pageRows.map((r) => (
               <tr key={r.m.id} className="border-t border-line/60 hover:bg-panel2/60">
                 <td className="px-3 py-2">
-                  <NavLink href={`/models/${r.m.id}`} className="text-ink hover:text-teal">
-                    {r.m.title}
-                  </NavLink>
-                  <div className="text-[10px] text-ink3">{r.m.category || "Uncategorized"}</div>
+                  <div className="flex items-center gap-2.5">
+                    <CoverThumb src={r.m.cover} />
+                    <div className="min-w-0">
+                      <NavLink href={`/models/${r.m.id}`} className="text-ink hover:text-teal">
+                        {r.m.title}
+                      </NavLink>
+                      <div className="text-[10px] text-ink3">{r.m.category || "Uncategorized"}</div>
+                    </div>
+                  </div>
                 </td>
                 <td className="px-3 py-2 text-right font-mono">{fmt(r.m.view)}</td>
                 <td className="px-3 py-2 text-right font-mono">{fmt(r.m.dl)}</td>
@@ -257,6 +262,47 @@ export function Catalog({
         )}
       </div>
     </section>
+  );
+}
+
+const PREVIEW = 176;
+
+/** Small cover thumbnail with a hover preview. The enlarged image is fixed-positioned
+ *  so it escapes the table's horizontal-scroll container instead of being clipped. */
+function CoverThumb({ src }: { src?: string }) {
+  const [box, setBox] = useState<{ x: number; y: number } | null>(null);
+  if (!src) {
+    return <div className="h-9 w-9 shrink-0 rounded-md border border-line bg-panel2" />;
+  }
+  return (
+    <div
+      className="shrink-0"
+      onMouseEnter={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        let x = r.right + 8;
+        if (x + PREVIEW > window.innerWidth) x = r.left - PREVIEW - 8;
+        const y = Math.max(8, Math.min(r.top + r.height / 2 - PREVIEW / 2, window.innerHeight - PREVIEW - 8));
+        setBox({ x, y });
+      }}
+      onMouseLeave={() => setBox(null)}
+    >
+      <img
+        src={src}
+        alt=""
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        className="h-9 w-9 rounded-md border border-line bg-panel2 object-cover"
+      />
+      {box && (
+        <img
+          src={src}
+          alt=""
+          referrerPolicy="no-referrer"
+          className="pointer-events-none fixed z-50 rounded-lg border border-line bg-panel2 object-cover shadow-2xl"
+          style={{ left: box.x, top: box.y, width: PREVIEW, height: PREVIEW }}
+        />
+      )}
+    </div>
   );
 }
 
