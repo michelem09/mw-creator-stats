@@ -7,6 +7,8 @@ import { CompareToggle } from "./CompareToggle";
 import { useSync } from "./SyncProvider";
 import { Logo } from "./Logo";
 import { APP_VERSION } from "./version";
+import { WhatsNew } from "./WhatsNew";
+import { CHANGELOG, notesSince, compareVersions, type ChangelogEntry } from "./changelog";
 import { Overview } from "./sections/Overview";
 import { PointsOverview } from "./sections/PointsOverview";
 import { PointsBreakdown } from "./sections/PointsBreakdown";
@@ -30,6 +32,7 @@ import type { CompareConfig, CompareMode, Snapshot } from "@mw/core/types";
 
 const COMPARE_MODE_KEY = "mw_compare_mode";
 const RANGE_KEY = "mw_range";
+const WHATSNEW_KEY = "mw_seen_version";
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function loadCompareMode(): CompareMode {
@@ -66,6 +69,24 @@ export function Dashboard({ sessionAuth = false }: { sessionAuth?: boolean }) {
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [prevSnap, setPrevSnap] = useState<Snapshot | null>(null);
   const [loading, setLoading] = useState(false);
+  const [whatsNew, setWhatsNew] = useState<ChangelogEntry[] | null>(null);
+
+  // Show the "What's new" panel once after an update (never on a fresh install).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const seen = window.localStorage.getItem(WHATSNEW_KEY);
+      if (seen === null) {
+        window.localStorage.setItem(WHATSNEW_KEY, APP_VERSION);
+      } else if (compareVersions(APP_VERSION, seen) > 0) {
+        const fresh = notesSince(seen);
+        if (fresh.length) setWhatsNew(fresh);
+        window.localStorage.setItem(WHATSNEW_KEY, APP_VERSION);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     if (!sessionAuth) setCookie(loadCookie());
@@ -294,8 +315,16 @@ export function Dashboard({ sessionAuth = false }: { sessionAuth?: boolean }) {
           Conversion rates from impression/view/download. Traffic source weighted by
           views. Snapshots stored locally in your browser (IndexedDB).
         </p>
-        <p className="text-[10px] text-ink3/70">v{APP_VERSION}</p>
+        <button
+          onClick={() => setWhatsNew(CHANGELOG)}
+          className="text-[10px] text-ink3/70 hover:text-ink3 hover:underline"
+          title="What's new"
+        >
+          v{APP_VERSION}
+        </button>
       </footer>
+
+      {whatsNew && <WhatsNew entries={whatsNew} onClose={() => setWhatsNew(null)} />}
     </main>
   );
 }
