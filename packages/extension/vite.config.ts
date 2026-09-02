@@ -8,6 +8,11 @@ import { resolve } from "node:path";
 export default defineConfig({
   base: "./",
   plugins: [react()],
+  // Expose the extension version to the shared UI footer. `yarn build` sets
+  // npm_package_version from packages/extension/package.json.
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? "dev"),
+  },
   resolve: {
     alias: {
       "@mw/core": resolve(__dirname, "../core/src"),

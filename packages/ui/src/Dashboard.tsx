@@ -6,6 +6,7 @@ import { SyncButton } from "./SyncButton";
 import { CompareToggle } from "./CompareToggle";
 import { useSync } from "./SyncProvider";
 import { Logo } from "./Logo";
+import { APP_VERSION } from "./version";
 import { Overview } from "./sections/Overview";
 import { PointsOverview } from "./sections/PointsOverview";
 import { PointsBreakdown } from "./sections/PointsBreakdown";
@@ -262,6 +263,7 @@ export function Dashboard({ sessionAuth = false }: { sessionAuth?: boolean }) {
           Conversion rates from impression/view/download. Traffic source weighted by
           views. Snapshots stored locally in your browser (IndexedDB).
         </p>
+        <p className="text-[10px] text-ink3/70">v{APP_VERSION}</p>
       </footer>
     </main>
   );
