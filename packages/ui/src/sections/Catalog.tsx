@@ -3,6 +3,7 @@ import { NavLink } from "../nav";
 import { useMemo, useState } from "react";
 import { fmt, pct } from "@mw/core/format";
 import type { ModelStat } from "@mw/core/types";
+import { coverPreviewPos } from "../coverPreview";
 
 type SortKey =
   | "title"
@@ -279,10 +280,7 @@ function CoverThumb({ src }: { src?: string }) {
       className="shrink-0"
       onMouseEnter={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
-        let x = r.right + 8;
-        if (x + PREVIEW > window.innerWidth) x = r.left - PREVIEW - 8;
-        const y = Math.max(8, Math.min(r.top + r.height / 2 - PREVIEW / 2, window.innerHeight - PREVIEW - 8));
-        setBox({ x, y });
+        setBox(coverPreviewPos(r, { width: window.innerWidth, height: window.innerHeight }, PREVIEW));
       }}
       onMouseLeave={() => setBox(null)}
     >
