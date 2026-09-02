@@ -46,7 +46,7 @@ export async function streamGemini(opts: GeminiCallInput): Promise<ReadableStrea
     if (signal.aborted) ac.abort();
     else signal.addEventListener("abort", () => ac.abort(), { once: true });
   }
-  const timer = setTimeout(() => ac.abort(), 45_000);
+  const timer = setTimeout(() => ac.abort(), 20_000);
 
   let upstream: Response;
   try {

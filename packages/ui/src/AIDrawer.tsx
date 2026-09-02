@@ -119,6 +119,12 @@ export function AIDrawer({ snapshot, prevSnapshot, focusModelId, suggestedPrompt
     }
   }
 
+  function retry(entry: AIChatEntry) {
+    if (running) return;
+    setEntries((arr) => arr.filter((e) => e.id !== entry.id));
+    ask(entry.question);
+  }
+
   function clearLog() {
     setEntries([]);
   }
@@ -184,7 +190,7 @@ export function AIDrawer({ snapshot, prevSnapshot, focusModelId, suggestedPrompt
           ) : (
             <div className="space-y-4">
               {entries.map((e) => (
-                <Entry key={e.id} entry={e} />
+                <Entry key={e.id} entry={e} onRetry={() => retry(e)} />
               ))}
               {entries.length > 0 && (
                 <button
@@ -269,7 +275,7 @@ function ModeToggle({ mode, setMode }: { mode: AIMode; setMode: (m: AIMode) => v
   );
 }
 
-function Entry({ entry }: { entry: AIChatEntry }) {
+function Entry({ entry, onRetry }: { entry: AIChatEntry; onRetry?: () => void }) {
   return (
     <div className="space-y-2">
       <div className="rounded-lg border border-amber/30 bg-panel2 px-3 py-2">
@@ -284,7 +290,17 @@ function Entry({ entry }: { entry: AIChatEntry }) {
           <div className="text-[10px] uppercase tracking-widest text-ink3">{entry.mode}</div>
         </div>
         {entry.error ? (
-          <div className="mt-1 text-sm text-red">{entry.error}</div>
+          <div className="mt-1">
+            <div className="text-sm text-red">{entry.error}</div>
+            {onRetry && (
+              <button
+                onClick={onRetry}
+                className="mt-2 rounded-md border border-line bg-panel2 px-2.5 py-1 text-[11px] font-semibold text-ink2 hover:border-teal hover:text-ink"
+              >
+                ↻ Retry
+              </button>
+            )}
+          </div>
         ) : entry.answer ? (
           <div className="mt-1 text-ink">
             <MiniMarkdown text={entry.answer} />
