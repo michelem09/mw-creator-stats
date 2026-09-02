@@ -96,21 +96,22 @@ export function ModelDetail({ id }: { id: number }) {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-6">
-      <header className="mb-4 flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
-        <div>
-          <NavLink href="/" className="text-xs text-ink3 hover:text-ink">
-            ← back to dashboard
-          </NavLink>
-          <h1 className="h-archivo mt-1 text-2xl font-extrabold text-ink">
-            {model?.title || `Model #${id}`}
-          </h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <DateRangePicker value={range} onChange={setRange} />
-          <CompareToggle mainRange={range} compare={compare} onChange={setCompare} />
+      <header className="mb-4 border-b border-line pb-4">
+        <NavLink href="/" className="text-xs text-ink3 hover:text-ink">
+          ← back to dashboard
+        </NavLink>
+        <h1 className="h-archivo mt-1 text-2xl font-extrabold text-ink">
+          {model?.title || `Model #${id}`}
+        </h1>
+      </header>
+
+      <div className="sticky top-0 z-30 -mx-4 mb-6 flex flex-wrap items-center gap-3 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur">
+        <DateRangePicker value={range} onChange={setRange} />
+        <CompareToggle mainRange={range} compare={compare} onChange={setCompare} />
+        <div className="ml-auto">
           <InsightsButton />
         </div>
-      </header>
+      </div>
 
       {loading && (
         <div className="rounded-xl border border-line bg-panel p-10 text-center text-ink3">

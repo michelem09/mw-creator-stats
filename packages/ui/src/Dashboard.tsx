@@ -155,7 +155,6 @@ export function Dashboard({ sessionAuth = false }: { sessionAuth?: boolean }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <InsightsButton />
           {sessionAuth ? (
             <span className="text-xs text-ink3">session ✓</span>
           ) : (
@@ -179,16 +178,19 @@ export function Dashboard({ sessionAuth = false }: { sessionAuth?: boolean }) {
             cookie={cookie}
             compareRange={compare.range}
           />
-          {collectedAt && (
-            <span className="ml-auto font-mono text-[10px] text-ink3">
-              snapshot: {collectedAt}
-              {prevSnap && (
-                <span className="ml-2 text-amber">
-                  · compare loaded ({prevSnap.meta.dateRange.start}→{prevSnap.meta.dateRange.end})
-                </span>
-              )}
-            </span>
-          )}
+          <div className="ml-auto flex items-center gap-3">
+            {collectedAt && (
+              <span className="font-mono text-[10px] text-ink3">
+                snapshot: {collectedAt}
+                {prevSnap && (
+                  <span className="ml-2 text-amber">
+                    · compare loaded ({prevSnap.meta.dateRange.start}→{prevSnap.meta.dateRange.end})
+                  </span>
+                )}
+              </span>
+            )}
+            <InsightsButton />
+          </div>
         </div>
       </div>
 
