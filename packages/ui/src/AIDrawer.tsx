@@ -78,17 +78,31 @@ export function AIDrawer({ snapshot, prevSnapshot, focusModelId, suggestedPrompt
       );
 
       const reader = stream.getReader();
+      let acc = "";
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
         if (value) {
+          acc += value;
           setEntries((arr) =>
             arr.map((e) => (e.id === id ? { ...e, answer: e.answer + value } : e)),
           );
         }
       }
+      // Never leave the entry stuck on "thinking…": if the stream closed without any
+      // text, mark it as an error rather than an eternally-empty answer.
       setEntries((arr) =>
-        arr.map((e) => (e.id === id ? { ...e, finishedAt: Date.now() } : e)),
+        arr.map((e) =>
+          e.id === id
+            ? {
+                ...e,
+                finishedAt: Date.now(),
+                error: acc.trim()
+                  ? e.error
+                  : e.error ?? "The model returned an empty response. Please try again.",
+              }
+            : e,
+        ),
       );
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);

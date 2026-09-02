@@ -1,10 +1,14 @@
 const BASE = "https://generativelanguage.googleapis.com/v1beta";
 
-// Use the "-latest" alias, not a pinned version: Google retires specific model
-// IDs for new API keys over time (e.g. gemini-2.5-flash), which silently breaks
-// new users while existing keys keep working. The alias always resolves to the
-// current stable Flash model.
-export const GEMINI_DEFAULT_MODEL = "gemini-flash-latest";
+// Model choice is fiddly with the Gemini API:
+//  - Pinned versions get retired for new keys (e.g. gemini-2.5-flash → 404
+//    "no longer available to new users"), silently breaking new users.
+//  - The newer "thinking" Flash models (gemini-flash-latest and the 3.x flashes)
+//    can hang for 20s+ or return no text at all for a simple prompt.
+// The lite "-latest" alias is broadly available, non-"thinking", fast (~4s first
+// token) and returns text reliably — the best fit for this snappy one-shot Q&A.
+// (It is NOT a thinking model, so it must NOT be sent a `thinkingConfig`.)
+export const GEMINI_DEFAULT_MODEL = "gemini-flash-lite-latest";
 
 export interface GeminiCallInput {
   apiKey: string;
@@ -16,7 +20,11 @@ export interface GeminiCallInput {
 }
 
 interface GeminiStreamChunk {
-  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string }> };
+    finishReason?: string;
+  }>;
+  promptFeedback?: { blockReason?: string };
   error?: { message?: string };
 }
 
@@ -30,22 +38,36 @@ export async function streamGemini(opts: GeminiCallInput): Promise<ReadableStrea
     `${BASE}/models/${encodeURIComponent(model)}:streamGenerateContent` +
     `?alt=sse&key=${encodeURIComponent(apiKey)}`;
 
-  const upstream = await fetch(url, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: [{ role: "user", parts: [{ text: user }] }],
-      generationConfig: {
-        maxOutputTokens: maxTokens,
-        // Flash models "think" by default, which can consume the whole output
-        // budget and return no answer text. This one-shot Q&A doesn't need it,
-        // so switch thinking off.
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    }),
-    signal,
-  });
+  // Guard against a model that never responds: abort if the server hasn't returned
+  // headers within a generous window, so the UI surfaces an error instead of
+  // spinning on "thinking…" forever. Also forward the caller's abort (drawer close).
+  const ac = new AbortController();
+  if (signal) {
+    if (signal.aborted) ac.abort();
+    else signal.addEventListener("abort", () => ac.abort(), { once: true });
+  }
+  const timer = setTimeout(() => ac.abort(), 45_000);
+
+  let upstream: Response;
+  try {
+    upstream = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: "user", parts: [{ text: user }] }],
+        generationConfig: { maxOutputTokens: maxTokens },
+      }),
+      signal: ac.signal,
+    });
+  } catch (e) {
+    clearTimeout(timer);
+    if (signal?.aborted) throw e; // caller cancelled (e.g. drawer closed)
+    throw new Error(
+      "Gemini request timed out with no response. Please try again, or switch to Precise mode.",
+    );
+  }
+  clearTimeout(timer);
 
   if (!upstream.ok || !upstream.body) {
     let detail = `HTTP ${upstream.status}`;
@@ -61,6 +83,12 @@ export async function streamGemini(opts: GeminiCallInput): Promise<ReadableStrea
   const reader = upstream.body.getReader();
   const decoder = new TextDecoder();
 
+  // Track whether we produced any answer text and why the model stopped, so we can
+  // surface a clear error instead of hanging when Gemini returns no text at all
+  // (e.g. finishReason MAX_TOKENS / SAFETY, or a blocked prompt).
+  let emittedText = false;
+  let stopReason = "";
+
   // Gemini's SSE uses CRLF line endings, so events are separated by \r\n\r\n and
   // lines by \r\n. Be tolerant of both, and flush any trailing event when the
   // stream ends without a final blank line.
@@ -71,10 +99,14 @@ export async function streamGemini(opts: GeminiCallInput): Promise<ReadableStrea
       if (!payload || payload === "[DONE]") continue;
       try {
         const parsed = JSON.parse(payload) as GeminiStreamChunk;
-        const text = parsed.candidates?.[0]?.content?.parts
-          ?.map((p) => p.text ?? "")
-          .join("");
-        if (text) controller.enqueue(text);
+        const cand = parsed.candidates?.[0];
+        const text = cand?.content?.parts?.map((p) => p.text ?? "").join("");
+        if (text) {
+          emittedText = true;
+          controller.enqueue(text);
+        }
+        if (cand?.finishReason && cand.finishReason !== "STOP") stopReason = cand.finishReason;
+        if (parsed.promptFeedback?.blockReason) stopReason = `blocked: ${parsed.promptFeedback.blockReason}`;
       } catch {
         /* skip malformed event */
       }
@@ -88,6 +120,15 @@ export async function streamGemini(opts: GeminiCallInput): Promise<ReadableStrea
         const { value, done } = await reader.read();
         if (done) {
           if (buffer.trim()) emitEvent(controller, buffer);
+          if (!emittedText) {
+            controller.error(
+              new Error(
+                `Gemini returned no answer text${stopReason ? ` (reason: ${stopReason})` : ""}. ` +
+                  `Please try again, or switch to Precise mode.`,
+              ),
+            );
+            return;
+          }
           controller.close();
           return;
         }
