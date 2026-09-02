@@ -13,6 +13,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Clear error messages and a Retry button when an AI answer fails or times out.",
       "The ✨ Insights button stays available while you scroll.",
       "Your selected date range is remembered across reloads.",
+      "Model cover thumbnails in the catalogue (enlarge on hover) and on the model page.",
     ],
   },
   {

@@ -13,6 +13,9 @@ per-version release-notes field, so this file is the canonical changelog.
   the model-detail page, so it's always reachable while scrolling.
 - **Remember the selected date range** across reloads, so your synced view no
   longer resets to "Last 30 days".
+- **Model cover thumbnails** in the catalogue (with a hover preview) and on the
+  model-detail page, plus a quick link to open a model on MakerWorld.
+- An in-app **"What's new"** panel that shows changes once after an update.
 - Show the app version in the footer.
 - Internal: add a unit + integration test suite and a `release-check` gate.
 
