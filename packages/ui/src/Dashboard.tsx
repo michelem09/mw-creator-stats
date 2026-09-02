@@ -77,6 +77,13 @@ export function Dashboard({ sessionAuth = false }: { sessionAuth?: boolean }) {
     try {
       const seen = window.localStorage.getItem(WHATSNEW_KEY);
       if (seen === null) {
+        // No baseline. If the user already has app state, they're upgrading to
+        // the first version that has this panel — show the latest notes once.
+        // Stay quiet for a brand-new install.
+        const hadPriorUse = Object.keys(window.localStorage).some(
+          (k) => k.startsWith("mw_") && k !== WHATSNEW_KEY,
+        );
+        if (hadPriorUse) setWhatsNew([CHANGELOG[0]]);
         window.localStorage.setItem(WHATSNEW_KEY, APP_VERSION);
       } else if (compareVersions(APP_VERSION, seen) > 0) {
         const fresh = notesSince(seen);
