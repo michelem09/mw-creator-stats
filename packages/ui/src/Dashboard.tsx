@@ -29,12 +29,31 @@ import { idbStore } from "@mw/core/adapters/store-idb";
 import type { CompareConfig, CompareMode, Snapshot } from "@mw/core/types";
 
 const COMPARE_MODE_KEY = "mw_compare_mode";
+const RANGE_KEY = "mw_range";
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function loadCompareMode(): CompareMode {
   if (typeof window === "undefined") return "none";
   const v = window.localStorage.getItem(COMPARE_MODE_KEY) as CompareMode | null;
   if (v === "prevPeriod" || v === "prevYear" || v === "custom") return v;
   return "none";
+}
+
+/** Restore the last selected date range so a reload shows the same (already-synced)
+ *  view instead of resetting to "Last 30 days" and looking empty. */
+function loadRange(): DateRange | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(RANGE_KEY);
+    if (!raw) return null;
+    const r = JSON.parse(raw) as Partial<DateRange>;
+    if (r && DATE_RE.test(r.start ?? "") && DATE_RE.test(r.end ?? "")) {
+      return { start: r.start as string, end: r.end as string };
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
 }
 
 /** When sessionAuth is true (the extension), the live MakerWorld session is used —
@@ -50,12 +69,24 @@ export function Dashboard({ sessionAuth = false }: { sessionAuth?: boolean }) {
 
   useEffect(() => {
     if (!sessionAuth) setCookie(loadCookie());
+    const restored = loadRange();
+    if (restored) setRange(restored);
     const mode = loadCompareMode();
     if (mode !== "none") {
-      const startRange = { start: daysAgo(30), end: today() };
-      setCompareState({ mode, range: pickPrevRange(mode, startRange, null) });
+      const base = restored ?? { start: daysAgo(30), end: today() };
+      setCompareState({ mode, range: pickPrevRange(mode, base, null) });
     }
   }, [sessionAuth]);
+
+  // Remember the selected range across reloads.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(RANGE_KEY, JSON.stringify(range));
+    } catch {
+      /* ignore */
+    }
+  }, [range]);
 
   useEffect(() => {
     setCompareState((c) => {
